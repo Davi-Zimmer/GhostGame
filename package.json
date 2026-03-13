@@ -1,0 +1,19 @@
+{
+  "name": "irado",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev" : "tsc && node Public/Server/Server.js"
+
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/express": "^5.0.6",
+    "@types/typescript": "^0.4.29",
+    "express": "^5.2.1",
+    "typescript": "^5.9.3"
+  }
+}

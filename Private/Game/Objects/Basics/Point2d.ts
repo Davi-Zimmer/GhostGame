@@ -10,13 +10,16 @@ class Point2d {
 
     public getX = () => this.x
     public getY = () => this.y
-    
 
     public setX = ( x: number ) => this.x = x
     public setY = ( y: number ) => this.y = y
 
     public applyX   = ( x: number ) => this.x += x
     public applyY   = ( y: number ) => this.y += y
+
+
+    public extractX = () => this.x
+    public extractY = () => this.y
 
 }
 

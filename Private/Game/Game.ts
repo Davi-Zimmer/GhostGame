@@ -1,8 +1,10 @@
 import EventManager from "./Engine/EventManager.js"
 import Camera from "./Objects/Basics/Camera.js"
+import Rect from "./Objects/Basics/Rect.js"
 import RenderableObject from "./Objects/Basics/Renderable.js"
 import Entity from "./Objects/Entity/Entity.js"
 import Player from "./Objects/Entity/Player.js"
+import { GetOverlap, IsColliding } from "./Physics/Collision.js"
 
 type InputeFunc = ( e: Event ) => void
 
@@ -92,7 +94,6 @@ class Game {
 
     }
 
-
     public setup(){
         
         const player = 
@@ -154,13 +155,44 @@ class Game {
 
     }
 
-    public update( ctx: CanvasRenderingContext2D ){
-        
-        if( this.camera.isFollowing() ){
+    private collision( e: RenderableObject ){
+
+        for( const other of this.map ){
+
+            if( other === e ) continue
+
+            /// solid?
+            if( !other.getSolid() ) continue
+
+
+            if( !IsColliding( e, other ) ) continue
+
+            const overlap = GetOverlap( e, other )
+
+            if( !overlap ) continue
             
-            this.camera.tick()
+            
+            const horizontal = Math.abs( overlap.x ) < Math.abs( overlap.y )
+            
+            if( horizontal ){
+                
+                // empurrar entidade
+                e.applyX( overlap.x )
+
+            } else {
+
+                // if( overlap.y < 0 ){ // Top collision }
+                e.applyY( overlap.y )
+
+            }
 
         }
+
+    }
+
+    public update( ctx: CanvasRenderingContext2D ){
+        
+        if( this.camera.isFollowing() ) this.camera.tick()
 
         this.executeKeys()
 
@@ -168,8 +200,9 @@ class Game {
 
         ctx.fillRect( 0, 0, innerWidth, innerHeight )
 
-
         for( const n of this.map ){
+
+            if( n instanceof RenderableObject && n.getSolid() ) this.collision( n )
 
             n.tick()
 
@@ -177,9 +210,7 @@ class Game {
 
         }
 
-
     }
-
 
 }
 

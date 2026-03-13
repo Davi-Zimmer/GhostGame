@@ -16,6 +16,9 @@ class Point3d extends Point2d {
 
     public setZ = ( z: number ) => this.z = z 
 
+    public applyZ = ( z: number ) => this.z += z 
+
+    public extractZ = () => this.z
 
 }
 

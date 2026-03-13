@@ -118,13 +118,10 @@ class EventManager {
 
     public onDown = ( key: string, callback: KeyFunc ) => {
         
-        console.log( "AAAAAAAAAAAAAAAAAAAA")
-        
         this.ensureKey( key )
 
         this.keyMap[ key ].onDown.add( callback )
         
-
     }
 
     public onUp = ( key: string, callback: KeyFunc ) => {

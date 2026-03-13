@@ -36,11 +36,11 @@ class Camera extends Vec2 {
 
         if( !this.followTarget ) return
 
-        const x = ( this.followTarget.getX() + this.followTarget.getW() / 2) - innerWidth  / 2
-        const y = ( this.followTarget.getY() + this.followTarget.getH() / 2) - innerHeight / 2
+        const x = ( this.followTarget.extractX() + this.followTarget.getW() / 2) - innerWidth  / 2
+        const y = ( this.followTarget.extractY() + this.followTarget.getH() / 2) - innerHeight / 2
 
-        this.setX( this.lerp( this.getX(), x, .5 ) )
-        this.setY( this.lerp( this.getY(), y, .5 ) )
+        this.setX( this.lerp( this.getX(), x, .3 ) )
+        this.setY( this.lerp( this.getY(), y, .3 ) )
 
     }
 
@@ -54,10 +54,6 @@ class Camera extends Vec2 {
 
     public getZoom = () => this.zoom
     public setZoom = ( zoom: number ) => this.zoom = zoom
-
-    
-
-
 
 }
 

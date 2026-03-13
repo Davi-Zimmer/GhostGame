@@ -63,6 +63,12 @@ class Entity extends RenderableObject {
 
     public setSpeed = ( s: number ) => this.speed = s
 
+    public extractX = () => this.getX() + this.acceleration.getX() + this.orientation.getX() * this.getSpeed()
+    public extractY = () => this.getY() + this.acceleration.getY() + this.orientation.getY() * this.getSpeed()
+
+    public getOrientation  = () => this.orientation
+    public getAcceleration = () => this.acceleration
+
 }
 
 export default Entity

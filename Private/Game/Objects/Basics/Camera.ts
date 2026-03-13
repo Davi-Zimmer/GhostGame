@@ -5,6 +5,8 @@ class Camera extends Vec2 {
 
     private zoom: number
 
+    private followTarget: Rect | null = null
+
     constructor( x: number, y: number, zoom?: number ){
 
         super( x, y )
@@ -17,19 +19,45 @@ class Camera extends Vec2 {
 
         return {
 
-            x: rect.getX() - this.getX() + this.getX(),
-            y: rect.getY() - this.getY() + this.getY(),
+            x: rect.getX() - this.getX(),
+            y: rect.getY() - this.getY(),
             w: rect.getW() * this.zoom,
             h: rect.getH() * this.zoom
-            
+
         }
 
     }
 
+    private lerp( start: number, end: number, t: number ) {
+        return start + (end - start) * t;
+    }
+
+    public tick(){
+
+        if( !this.followTarget ) return
+
+        const x = ( this.followTarget.getX() + this.followTarget.getW() / 2) - innerWidth  / 2
+        const y = ( this.followTarget.getY() + this.followTarget.getH() / 2) - innerHeight / 2
+
+        this.setX( this.lerp( this.getX(), x, .5 ) )
+        this.setY( this.lerp( this.getY(), y, .5 ) )
+
+    }
+
+    public startFollow( target: Rect | null ){
+    
+        this.followTarget = target 
+    
+    }
+
+    public isFollowing = () => !!this.followTarget
 
     public getZoom = () => this.zoom
     public setZoom = ( zoom: number ) => this.zoom = zoom
+
     
+
+
 
 }
 

@@ -95,7 +95,7 @@ class Game {
 
     public setup(){
         
-        this.addToMap(
+        const player = 
             new Player( {
                 x: 0,
                 y: 0,
@@ -104,7 +104,9 @@ class Game {
                 h: 100,
                 color: "blue",
             })
-        )
+        
+
+        this.addToMap( player )
 
         this.addToMap(
             new Entity( {
@@ -115,6 +117,8 @@ class Game {
                 h: 200
             })
         )
+
+        this.camera.startFollow( player )
 
     }
 
@@ -152,6 +156,12 @@ class Game {
 
     public update( ctx: CanvasRenderingContext2D ){
         
+        if( this.camera.isFollowing() ){
+            
+            this.camera.tick()
+
+        }
+
         this.executeKeys()
 
         ctx.fillStyle = "gray"

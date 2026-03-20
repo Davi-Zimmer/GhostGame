@@ -13,9 +13,8 @@ class MapCreator {
     private tilesize = 100
     private current = 0
 
-
     private posX = innerWidth / 2
-    private posY = 50 
+    private posY = 20
     private slotSize = 50
     private margin = 10
     private showItens = 10
@@ -103,7 +102,6 @@ class MapCreator {
 
     private middleClick( x: number, y: number ){
         //const e = this.game.map.find( item => !ClickCollision( x + this.tilesize / 2, y  + this.tilesize / 2, item ) )
-   
 
     }
 
@@ -120,7 +118,7 @@ class MapCreator {
                 x, y,
                 z: 0,
                 w: this.tilesize,
-                h: this.tilesize / 2,
+                h: this.tilesize,
                 color: "purpe"
             })
         )

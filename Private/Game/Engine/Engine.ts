@@ -23,6 +23,8 @@ class Engine {
 
         this.game.setup()
 
+        ctx.canvas.focus()
+
         return this.game
 
     }

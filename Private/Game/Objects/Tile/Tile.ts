@@ -1,7 +1,7 @@
+import FisicObject from "../Basics/FisicObject.js"
 import { RectInterface } from "../Basics/Rect.js"
-import RenderableObject from "../Basics/Renderable.js"
 
-class Tile extends RenderableObject {
+class Tile extends FisicObject {
 
     constructor( props: RectInterface ){
         

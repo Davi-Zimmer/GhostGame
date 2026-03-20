@@ -19,7 +19,7 @@ import path from "path"
 
     })
 
-    const port = 8080
+    const port = 5500
     const host = "localhost"
 
     app.listen( port, host, () => {

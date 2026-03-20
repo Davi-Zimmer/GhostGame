@@ -18,6 +18,17 @@ class Vec2 extends Point2d {
         this.setY( dy )
     }
 
+    public multiplyX = ( x: number ) => this.setX( this.getX() * x ) 
+    public multiplyY = ( y: number ) => this.setY( this.getY() * y ) 
+
+    public multiply( x: number, y: number ){
+        this.multiplyX( x )
+        this.multiplyY( y )
+    }
+
+    public get = () => ({ x: this.getX(), y: this.getY() })
+
+
 }
 
 

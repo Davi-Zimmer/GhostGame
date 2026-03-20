@@ -1,0 +1,158 @@
+import Game from "../Game.js";
+import Camera from "../Objects/Basics/Camera.js";
+import FisicObject from "../Objects/Basics/FisicObject.js";
+import Entity from "../Objects/Entity/Entity.js";
+import Player from "../Objects/Entity/Player.js";
+import Tile from "../Objects/Tile/Tile.js";
+import { ClickCollision } from "../Physics/Collision.js";
+
+class MapCreator {
+
+    private game: Game
+    private position = { x: 0, y: 0 }
+    private tilesize = 100
+    private current = 0
+
+
+    private posX = innerWidth / 2
+    private posY = 50 
+    private slotSize = 50
+    private margin = 10
+    private showItens = 10
+
+    private tileList: (typeof FisicObject)[] = [
+       Entity,
+       Player,
+       Tile,
+    ]
+
+    constructor( game: Game ) {
+
+        this.game = game
+
+        this.addMouseEvent()
+
+    }
+
+    private next(){
+        this.current++
+
+        if( this.current > this.tileList.length - 1) {
+            this.current = 0
+            return
+        }
+    }
+
+    private previus(){
+        this.current--
+
+        if( this.current < 0 ) {
+            this.current = this.tileList.length - 1
+            return
+        }
+
+    }
+
+    private calcMouseX = ( x: number ) => Math.floor( ( x + this.game.camera.getX() ) / this.tilesize ) * this.tilesize 
+    private calcMouseY = ( y: number ) => Math.floor( ( y + this.game.camera.getY() ) / this.tilesize ) * this.tilesize 
+
+    private addMouseEvent(){
+
+        const events = this.game.events
+        
+        events.onMouseMove( e => {
+      
+            this.position.x = this.calcMouseX( e.clientX )
+            this.position.y = this.calcMouseY( e.clientY )
+
+        })
+
+        events.onMouseDown( 0, e => {
+            this.leftClick(
+                this.calcMouseX( e.clientX ),
+                this.calcMouseY( e.clientY ),
+                e
+            )
+        })
+
+        events.onMouseDown( 1, e => {
+            this.middleClick(
+                this.calcMouseX( e.clientX ),
+                this.calcMouseY( e.clientY )
+                
+            )
+        })
+
+        events.onMouseDown( 2, e => {
+            this.rightClick(
+                this.calcMouseX( e.clientX ),
+                this.calcMouseY( e.clientY ),
+                e
+            )
+        })
+
+        events.onMouseWheel( e => {
+            
+            const delta = Math.sign( e.deltaY)
+
+            delta < 1 ? this.previus() : this.next() 
+
+        })
+
+    }
+
+    private middleClick( x: number, y: number ){
+        //const e = this.game.map.find( item => !ClickCollision( x + this.tilesize / 2, y  + this.tilesize / 2, item ) )
+   
+
+    }
+
+    private rightClick( x: number, y: number, e: MouseEvent ){
+        
+        this.game.map = this.game.map.filter( item => !ClickCollision( x + this.tilesize / 2, y  + this.tilesize / 2, item ) )
+
+    }
+
+    private leftClick( x: number, y: number,  e: MouseEvent ){
+        
+        this.game.addToMap(
+            new Entity( {
+                x, y,
+                z: 0,
+                w: this.tilesize,
+                h: this.tilesize / 2,
+                color: "purpe"
+            })
+        )
+
+    }
+
+
+    private getPos(){
+        return  this.posX - (this.showItens * this.slotSize + this.showItens * this.margin) / 2
+    }
+
+    public renderCursor( ctx: CanvasRenderingContext2D, cam: Camera ){
+
+        ctx.fillStyle = "#ffffff5f"
+        ctx.fillRect(  this.position.x - cam.getX() , this.position.y - cam.getY() , this.tilesize, this.tilesize )
+
+
+        ctx.fillStyle = "purple" 
+        ctx.fillRect( ( this.getPos() + this.current * this.slotSize + this.current * this.margin) - 5, this.posY -5 , this.slotSize + 10, this.slotSize + 10 )
+
+
+        ctx.fillStyle = "gray" 
+        for( let x = 0; x < this.showItens; x++ ){
+            
+            ctx.fillRect(  this.getPos() + x * this.slotSize + x * this.margin, this.posY, this.slotSize, this.slotSize )
+
+        }
+
+    }
+
+
+}
+
+
+export default MapCreator

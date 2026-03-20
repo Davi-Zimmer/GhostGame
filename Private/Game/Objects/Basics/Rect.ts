@@ -28,6 +28,9 @@ class Rect extends Point3d {
     public setW = ( w: number ) => this.w = w
     public setH = ( h: number ) => this.h = h
 
+    public ApllyW = ( w: number ) => this.w += w
+    public ApllyH = ( h: number ) => this.h += h
+
 }
 
 export default Rect

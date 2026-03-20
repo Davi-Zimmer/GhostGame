@@ -1,10 +1,13 @@
 import EventManager from "./Engine/EventManager.js"
+import MapCreator from "./Map Creator/Map Creator.js"
 import Camera from "./Objects/Basics/Camera.js"
+import FisicObject from "./Objects/Basics/FisicObject.js"
 import Rect from "./Objects/Basics/Rect.js"
 import RenderableObject from "./Objects/Basics/Renderable.js"
 import Entity from "./Objects/Entity/Entity.js"
 import Player from "./Objects/Entity/Player.js"
 import { GetOverlap, IsColliding } from "./Physics/Collision.js"
+import { clamp } from "./Utils/Clamp.js"
 
 type InputeFunc = ( e: Event ) => void
 
@@ -18,7 +21,10 @@ interface InputFunctionInterface {
 }
 
 class Game {
-    
+
+    //@ts-ignore
+    public player: Player
+
     private static Instance: Game
 
     public static GetInstance(){
@@ -86,11 +92,38 @@ class Game {
 
     */
     
+    private mapCreator: MapCreator | null
+
     public events = new EventManager()
 
-    constructor(){
+    private spriteSheet = new Image() 
 
-        this.camera = new Camera( 0, 0, 1 )
+    constructor(){
+        
+        this.load()
+
+        //@ts-ignore
+        window.game = this
+
+        this.mapCreator = new MapCreator( this )
+
+    }
+
+    private async load(){
+
+        await this.loadSpriteSheet()
+
+    }
+
+    private loadSpriteSheet(){
+
+        return new Promise(( resolve, reject ) => {
+
+            this.spriteSheet.onload = () => resolve( true )
+
+            this.spriteSheet.onerror = () => reject()
+
+        })
 
     }
 
@@ -99,7 +132,7 @@ class Game {
         const player = 
             new Player( {
                 x: 0,
-                y: 0,
+                y: -100,
                 z: 10,
                 w: 100,
                 h: 100,
@@ -119,17 +152,30 @@ class Game {
             })
         )
 
+        this.addToMap(
+            new Entity( {
+                x: 300,
+                y: 0,
+                z: 0,
+                w: 200,
+                h: 200,
+                mass: 5
+            })
+        )
+
         this.camera.startFollow( player )
+
+        this.player = player
 
     }
 
     // ------------------------------ Game Stuff ------------------------------ \\
 
-    public camera: Camera
+    public camera: Camera = new Camera( 0, 0, 1 )
 
-    public map: RenderableObject[] = []
+    public map: FisicObject[] = []
 
-    public addToMap( x: RenderableObject ){
+    public addToMap( x: FisicObject ){
         
         this.map.push( x )
 
@@ -137,7 +183,7 @@ class Game {
     
     }
 
-    public removeOfMap( x: RenderableObject ){
+    public removeOfMap( x: FisicObject ){
 
         this.map = this.map.filter( n => n !== x ) 
 
@@ -155,7 +201,7 @@ class Game {
 
     }
 
-    private collision( e: RenderableObject ){
+    private collision( e: FisicObject ){
 
         for( const other of this.map ){
 
@@ -164,27 +210,26 @@ class Game {
             /// solid?
             if( !other.getSolid() ) continue
 
-
             if( !IsColliding( e, other ) ) continue
 
             const overlap = GetOverlap( e, other )
 
             if( !overlap ) continue
             
-            
             const horizontal = Math.abs( overlap.x ) < Math.abs( overlap.y )
             
             if( horizontal ){
-                
-                // empurrar entidade
-                e.applyX( overlap.x )
+                other.applyX( -overlap.x )
+                e.pushX( overlap.x )
 
             } else {
-
-                // if( overlap.y < 0 ){ // Top collision }
-                e.applyY( overlap.y )
+                
+                other.applyY( -overlap.y ) 
+                e.pushY( overlap.y )
 
             }
+
+            if( other instanceof Player ){ this.camera.followTargetOverlap = overlap }
 
         }
 
@@ -196,8 +241,7 @@ class Game {
 
         this.executeKeys()
 
-        ctx.fillStyle = "gray"
-
+        ctx.fillStyle = "black"
         ctx.fillRect( 0, 0, innerWidth, innerHeight )
 
         for( const n of this.map ){
@@ -209,6 +253,8 @@ class Game {
             n.render( ctx, this.camera )
 
         }
+
+       this.mapCreator?.renderCursor( ctx, this.camera ) 
 
     }
 

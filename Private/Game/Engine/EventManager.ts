@@ -24,7 +24,7 @@ class EventManager {
 
 
         // canvas.addEventListener('mouseup'    , e => this.mouseUpTrigger( e ))
-        // canvas.addEventListener('wheel'      , e => this.mouseWheelTrigger( e ))
+        canvas.addEventListener('wheel'      , e => this.mouseWheelTrigger( e ))
 
     }
     
@@ -96,6 +96,10 @@ class EventManager {
 
     }
 
+    private mouseWheelTrigger( e: MouseEvent ){
+        this.mouseWheelCallbacks.forEach( callback => callback( e ) )
+    }
+
     public executeKeyPressed(){
         for( const key in this.keyMap ){
             
@@ -143,7 +147,7 @@ class EventManager {
 
     private mouseDownCallbacks : Record< string, Function[] > = {}
     private mouseUpCallbacks   : Record<string, Function[]> = {}
-
+    private mouseWheelCallbacks: Function[] = []
     private mouseMoveCallbacks:Function[] = []
 
     
@@ -183,6 +187,16 @@ class EventManager {
 
         this.mouseUpCallbacks[button].push( callback )
         
+    }
+
+    public onMouseMove = ( callback: MouseFunc ) => {
+        
+        this.mouseMoveCallbacks.push( callback )
+
+    } 
+
+    public onMouseWheel = ( callback: ( e: WheelEvent ) => void  ) => {
+        this.mouseWheelCallbacks.push( callback )
     }
 
 }

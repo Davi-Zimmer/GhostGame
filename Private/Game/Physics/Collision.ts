@@ -12,7 +12,6 @@ export function IsColliding( a: Rect, b: Rect ){
 }
 
 export function IsInside( a: Rect, b: Rect ){
-
     return (
         a.extractX() + a.getW() < b.extractX() &&
         a.extractY() + a.getH() < b.extractY() &&
@@ -36,5 +35,18 @@ export function GetOverlap( a: Rect, b: Rect ){
         x: dx > 0 ? px : -px,
         y: dy > 0 ? py : -py,
     }
+
+}
+
+
+export function ClickCollision( x: number, y: number, b: Rect ) {
+
+    return (
+        x > b.extractX() &&
+        y > b.extractY() &&
+        x < b.extractX() + b.getW() &&
+        y < b.extractY() + b.getH() 
+
+    )
 
 }

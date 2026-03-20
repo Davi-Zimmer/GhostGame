@@ -1,10 +1,11 @@
+import NormalizeVector from "../../Utils/Normalize.js";
 import Camera from "../Basics/Camera.js";
+import FisicObject, { FisicObjectInterface } from "../Basics/FisicObject.js";
 import { RectInterface } from "../Basics/Rect.js";
 import RenderableObject from "../Basics/Renderable.js";
 import Vec2 from "../Basics/Vec2.js";
 
-export interface EntityInterface extends RectInterface {
-    speed ?: number
+export interface EntityInterface extends FisicObjectInterface {
     color ?: string
     name  ?: EntityNames
 }
@@ -14,27 +15,18 @@ export enum EntityNames {
     Player  = "Player"
 }
 
-class Entity extends RenderableObject {
+class Entity extends FisicObject {
 
-    private speed: number
 
     private color: string
-
     private name: string = "Unknown"
-
-    // [ 1000.5, 50 ]
-    protected acceleration: Vec2 = new Vec2( 0, 0 )
-
-    // [ -1, 1 ]
-    protected orientation: Vec2 = new Vec2( 0, 0 )
 
     constructor( props : EntityInterface ){
 
         super( props )
 
         this.color = props.color ?? 'red'
-        this.name  = props.name ?? EntityNames.Unknown
-        this.speed = props.speed ?? 1
+        this.name  = props.name  ?? EntityNames.Unknown
 
     }
 
@@ -47,9 +39,9 @@ class Entity extends RenderableObject {
         ctx.fillRect( pos.x, pos.y, pos.w, pos.h )
 
     }
-
+    
     public tick(){
-
+        this.updatePosition()
     }
 
     public render( ctx: CanvasRenderingContext2D, cam: Camera ){
@@ -58,17 +50,9 @@ class Entity extends RenderableObject {
        
     }
 
+
     public getName  = () => this.name 
-    public getSpeed = () => this.speed
-
-    public setSpeed = ( s: number ) => this.speed = s
-
-    public extractX = () => this.getX() + this.acceleration.getX() + this.orientation.getX() * this.getSpeed()
-    public extractY = () => this.getY() + this.acceleration.getY() + this.orientation.getY() * this.getSpeed()
-
-    public getOrientation  = () => this.orientation
-    public getAcceleration = () => this.acceleration
-
+   
 }
 
 export default Entity

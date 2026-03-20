@@ -6,6 +6,7 @@ export interface RenderableObjectInterface extends RectInterface {
 
 class RenderableObject extends Rect {
 
+
     constructor( props : RectInterface ){
 
         super( props )
@@ -14,7 +15,7 @@ class RenderableObject extends Rect {
 
     public tick(){}
 
-    public render( ctx: CanvasRenderingContext2D, cam: Camera ){ }
+    public render( ctx: CanvasRenderingContext2D, cam: Camera, spriteSheet: HTMLImageElement ){ }
 
 }
 

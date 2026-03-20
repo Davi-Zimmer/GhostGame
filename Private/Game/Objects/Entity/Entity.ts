@@ -1,3 +1,4 @@
+import { clamp } from "../../Utils/Clamp.js";
 import NormalizeVector from "../../Utils/Normalize.js";
 import Camera from "../Basics/Camera.js";
 import FisicObject, { FisicObjectInterface } from "../Basics/FisicObject.js";
@@ -31,12 +32,12 @@ class Entity extends FisicObject {
     }
 
     public renderMe( ctx: CanvasRenderingContext2D, cam: Camera ){
-
+        
         ctx.fillStyle = this.color
-
         const pos = cam.subtract( this )
-
-        ctx.fillRect( pos.x, pos.y, pos.w, pos.h )
+        // ctx.fillRect( pos.x + cam.getX() / this.getZ(), pos.y +  cam.getY() / this.getZ(), pos.w, pos.h )
+        
+        ctx.fillRect( pos.x , pos.y , pos.w, pos.h )
 
     }
     
@@ -44,14 +45,14 @@ class Entity extends FisicObject {
         this.updatePosition()
     }
 
-    public render( ctx: CanvasRenderingContext2D, cam: Camera ){
+    public render( ctx: CanvasRenderingContext2D, cam: Camera, spriteSheet: HTMLImageElement ){
 
         this.renderMe( ctx, cam )
        
     }
 
 
-    public getName  = () => this.name 
+    public getName = () => this.name 
    
 }
 

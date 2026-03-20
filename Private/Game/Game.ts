@@ -123,6 +123,8 @@ class Game {
 
             this.spriteSheet.onerror = () => reject()
 
+            this.spriteSheet.src = "./Assets/placeholder.png"
+
         })
 
     }
@@ -236,7 +238,9 @@ class Game {
     }
 
     public update( ctx: CanvasRenderingContext2D ){
-        
+
+        ctx.imageSmoothingEnabled = false
+
         if( this.camera.isFollowing() ) this.camera.tick()
 
         this.executeKeys()
@@ -250,7 +254,7 @@ class Game {
 
             n.tick()
 
-            n.render( ctx, this.camera )
+            n.render( ctx, this.camera, this.spriteSheet )
 
         }
 

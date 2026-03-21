@@ -8,7 +8,6 @@ import Vec2 from "../Basics/Vec2.js";
 
 export interface EntityInterface extends FisicObjectInterface {
     color ?: string
-    name  ?: EntityNames
 }
 
 export enum EntityNames {
@@ -20,14 +19,12 @@ class Entity extends FisicObject {
 
 
     private color: string
-    private name: string = "Unknown"
 
     constructor( props : EntityInterface ){
 
         super( props )
 
         this.color = props.color ?? 'red'
-        this.name  = props.name  ?? EntityNames.Unknown
 
     }
 
@@ -50,9 +47,6 @@ class Entity extends FisicObject {
         this.renderMe( ctx, cam )
        
     }
-
-
-    public getName = () => this.name 
    
 }
 

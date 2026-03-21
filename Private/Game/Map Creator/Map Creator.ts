@@ -1,7 +1,6 @@
-import Game from "../Game.js";
+import Game, { ObjectNames } from "../Game.js";
 import Camera from "../Objects/Basics/Camera.js";
-import FisicObject from "../Objects/Basics/FisicObject.js";
-import Entity from "../Objects/Entity/Entity.js";
+import Entity, { EntityInterface } from "../Objects/Entity/Entity.js";
 import Player from "../Objects/Entity/Player.js";
 import Tile from "../Objects/Tile/Tile.js";
 import { ClickCollision } from "../Physics/Collision.js";
@@ -19,10 +18,12 @@ class MapCreator {
     private margin = 10
     private showItens = 10
 
-    private tileList: (typeof FisicObject)[] = [
-       Entity,
-       Player,
-       Tile,
+    private tileList = [
+        ObjectNames.Grass,
+        ObjectNames.Player,
+        ObjectNames.Tile,
+        ObjectNames.Entity
+
     ]
 
     constructor( game: Game ) {
@@ -55,6 +56,9 @@ class MapCreator {
     private calcMouseX = ( x: number ) => Math.floor( ( x + this.game.camera.getX() ) / this.tilesize ) * this.tilesize 
     private calcMouseY = ( y: number ) => Math.floor( ( y + this.game.camera.getY() ) / this.tilesize ) * this.tilesize 
 
+    private exactClicX = ( x: number ) => x + this.game.camera.getX()
+    private exactClicY = ( y: number ) => y + this.game.camera.getY()
+
     private addMouseEvent(){
 
         const events = this.game.events
@@ -84,8 +88,8 @@ class MapCreator {
 
         events.onMouseDown( 2, e => {
             this.rightClick(
-                this.calcMouseX( e.clientX ),
-                this.calcMouseY( e.clientY ),
+                this.exactClicX( e.clientX ),
+                this.exactClicY( e.clientY ),
                 e
             )
         })
@@ -101,18 +105,45 @@ class MapCreator {
     }
 
     private middleClick( x: number, y: number ){
-        //const e = this.game.map.find( item => !ClickCollision( x + this.tilesize / 2, y  + this.tilesize / 2, item ) )
+        // const e = this.game.map.find( item => !ClickCollision( x + this.tilesize / 2, y  + this.tilesize / 2, item ) )
 
     }
 
     private rightClick( x: number, y: number, e: MouseEvent ){
         
-        this.game.map = this.game.map.filter( item => !ClickCollision( x + this.tilesize / 2, y  + this.tilesize / 2, item ) )
+        this.game.map = this.game.map.filter( item => !ClickCollision( x, y, item ) )
 
     }
 
     private leftClick( x: number, y: number,  e: MouseEvent ){
-        
+
+        const name = this.tileList[ this.current ]
+
+        const property = Game.Objects[ name ]
+
+        const a = {
+            x, y,
+            z: property.z,
+            w: this.tilesize,
+            h: this.tilesize,
+            color: "purpe",
+            
+        } as EntityInterface
+
+        if( property ){
+            a.solid = property.isSolid,
+            a.uniqueSprite = property.sprite
+            a.mass = property.mass
+        }
+
+        const aa = new Tile( a )
+
+        console.log( aa )  
+
+        this.game.addToMap( aa )
+
+
+        /* 
         this.game.addToMap(
             new Entity( {
                 x, y,
@@ -122,9 +153,9 @@ class MapCreator {
                 color: "purpe"
             })
         )
+        */
 
     }
-
 
     private getPos(){
         return  this.posX - (this.showItens * this.slotSize + this.showItens * this.margin) / 2

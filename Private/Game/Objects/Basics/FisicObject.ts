@@ -1,17 +1,16 @@
 import NormalizeVector from "../../Utils/Normalize.js";
+import Collidable, { CollidableInterface } from "./Collidable.js";
 import RenderableObject, { RenderableObjectInterface } from "./Renderable.js";
 import Vec2 from "./Vec2.js";
 
-export interface FisicObjectInterface extends RenderableObjectInterface {
-    solid    ?: boolean
+export interface FisicObjectInterface extends CollidableInterface {
     mass     ?: number
     speed    ?: number
     friction ?: number
 }
 
-class FisicObject extends RenderableObject {
+class FisicObject extends Collidable {
 
-    private solid : boolean
     private mass  : number
     private speed : number
     private friction: number
@@ -23,7 +22,6 @@ class FisicObject extends RenderableObject {
 
         super( props )
 
-        this.solid = props.solid ?? true
         this.mass  = props.mass  ?? 100
         this.speed = props.speed ?? 1
 
@@ -31,20 +29,17 @@ class FisicObject extends RenderableObject {
 
     }
 
-    public getSolid = () => this.solid
     public getMass  = () => this.mass
     public getSpeed = () => this.speed
     public getAcceleration = () => this.acceleration
     public getOrientation  = () => this.orientation
     public getFriction = () => this.friction
 
-    public setSolid = ( solid: boolean ) => this.solid = solid
     public setMass  = ( mass : number )  => this.mass = mass
     public setSpeed = ( s: number ) => this.speed = s
     public setFriction = ( f: number) => this.friction = f
 
     public applyMass = ( mass : number )  => this.mass += mass
-
 
     protected updatePosition(){
 
@@ -64,8 +59,7 @@ class FisicObject extends RenderableObject {
     public extractY = () => this.getY() + this.acceleration.getY() + this.orientation.getY() * this.getSpeed()
 
     public pushX = ( x: number ) => {
-        const a = x / this.getMass()
-        Math.abs( a ) > .5 ? this.getAcceleration().applyX( a ) : null
+        this.getAcceleration().applyX( x ) 
     }
 
     public pushY = ( y: number ) => {

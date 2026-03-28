@@ -31,6 +31,16 @@ class Player extends Entity {
         this.setMass( 6 )
 
         this.fillSprites()
+
+        const scale = 3
+        
+        const w = 27 * scale
+        const h = 36 * scale
+
+
+
+        this.setW( w )
+        this.setH( h )
     }
 
     private fillSprites(){

@@ -1,6 +1,5 @@
 import NormalizeVector from "../../Utils/Normalize.js";
 import Collidable, { CollidableInterface } from "./Collidable.js";
-import RenderableObject, { RenderableObjectInterface } from "./Renderable.js";
 import Vec2 from "./Vec2.js";
 
 export interface FisicObjectInterface extends CollidableInterface {
@@ -59,7 +58,8 @@ class FisicObject extends Collidable {
     public extractY = () => this.getY() + this.acceleration.getY() + this.orientation.getY() * this.getSpeed()
 
     public pushX = ( x: number ) => {
-        this.getAcceleration().applyX( x ) 
+        const a = x / this.getMass()
+        Math.abs( a ) > .5 ? this.getAcceleration().applyX( x ) : null
     }
 
     public pushY = ( y: number ) => {

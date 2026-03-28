@@ -259,7 +259,6 @@ class Game {
                 e.pushX( overlap.x )
 
             } else {
-                
                 other.applyY( -overlap.y ) 
                 e.pushY( overlap.y )
 

@@ -5,7 +5,7 @@ class KeyEvent {
     private preventDefault: () => void
 
 
-    constructor( key: string, ctrl: boolean, preventDefault: () => void){
+    constructor( key: string, ctrl: boolean, preventDefault: () => void ){
         
         this.key = key
 

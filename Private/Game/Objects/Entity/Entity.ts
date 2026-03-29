@@ -1,13 +1,9 @@
-import { clamp } from "../../Utils/Clamp.js";
-import NormalizeVector from "../../Utils/Normalize.js";
 import Camera from "../Basics/Camera.js";
 import FisicObject, { FisicObjectInterface } from "../Basics/FisicObject.js";
-import { RectInterface } from "../Basics/Rect.js";
-import RenderableObject from "../Basics/Renderable.js";
-import Vec2 from "../Basics/Vec2.js";
 
 export interface EntityInterface extends FisicObjectInterface {
     color ?: string
+
 }
 
 export enum EntityNames {
@@ -15,14 +11,17 @@ export enum EntityNames {
     Player  = "Player"
 }
 
-class Entity extends FisicObject {
 
+class Entity extends FisicObject {
 
     private color: string
 
     constructor( props : EntityInterface ){
 
         super( props )
+
+        
+        this.setType( props.type ?? "Entity" )
 
         this.color = props.color ?? 'red'
 
@@ -47,7 +46,26 @@ class Entity extends FisicObject {
         this.renderMe( ctx, cam )
        
     }
-   
+
+    public static ToJson( e: Entity ){
+        return {
+            x: e.getX(),
+            y: e.getY(),
+            z: e.getZ(),
+            w: e.getW(),
+            h: e.getH(),
+            type: e.getType(),
+            name: e.getName(),
+            collision: e.useCollision(),
+            solid: e.getSolid(),
+            speed: e.getSpeed(),
+            friction: e.getFriction(),
+            color: e.color,
+            mass: e.getMass()
+        } as EntityInterface
+
+    }
+
 }
 
 export default Entity

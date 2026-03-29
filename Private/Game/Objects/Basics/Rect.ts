@@ -1,6 +1,6 @@
 import Point3d from "./Point3d.js"
 
-export interface RectInterface  {
+export interface RectInterface {
     x: number
     y: number
     z: number

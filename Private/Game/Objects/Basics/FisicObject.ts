@@ -57,14 +57,14 @@ class FisicObject extends Collidable {
     public extractX = () => this.getX() + this.acceleration.getX() + this.orientation.getX() * this.getSpeed()
     public extractY = () => this.getY() + this.acceleration.getY() + this.orientation.getY() * this.getSpeed()
 
-    public pushX = ( x: number ) => {
-        const a = x / this.getMass()
-        Math.abs( a ) > .5 ? this.getAcceleration().applyX( x ) : null
+    public pushX = ( x: number, bMass: number ) => {
+
+        this.mass < bMass ? this.getAcceleration().applyX( this.mass / bMass * x ) : null
+
     }
 
-    public pushY = ( y: number ) => {
-        const a = y / this.getMass()
-        Math.abs( a ) > .5 ? this.getAcceleration().applyY( a ) : null
+    public pushY = ( y: number, bMass: number ) => {
+       this.mass < bMass ? this.getAcceleration().applyY( this.mass / bMass * y ) : null
     }
 
 }

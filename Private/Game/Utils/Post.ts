@@ -7,6 +7,6 @@ export default async function Post( endPoint: string, body?: Object ){
             'Content-Type': 'Application/json'
         },
         body: body ? JSON.stringify( body ) : null 
-    }  )).json()
+    }  ))
 
 }

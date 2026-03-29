@@ -35,7 +35,7 @@ import Storage from "./Storage/Storage.js"
         }
 
         try {
-            new Storage().write( b.mapName, JSON.stringify( b.data ) )
+            new Storage().write( b.mapName, JSON.stringify( b.data, null, 3 ) )
 
             res.sendStatus( 200 )
 

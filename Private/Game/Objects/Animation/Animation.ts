@@ -2,7 +2,7 @@ class Animation {
 
     private frame = 0
     private animationRuning = false
-    private animationName = "down"
+    private animationName: string = ""
 
     private animationDelay = 0
 
@@ -27,6 +27,8 @@ class Animation {
             this.sprites[ animationName ].push( [ x + i * w + i * 2, y, w, h, franeDelay ] )
 
         }
+
+        if( this.animationName === "" ) this.animationName = animationName
 
     }
 

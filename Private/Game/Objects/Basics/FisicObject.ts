@@ -1,5 +1,6 @@
 import NormalizeVector from "../../Utils/Normalize.js";
 import Collidable, { CollidableInterface } from "./Collidable.js";
+import SimplePoint from "./SimpleRect.js";
 import Vec2 from "./Vec2.js";
 
 export interface FisicObjectInterface extends CollidableInterface {
@@ -13,6 +14,8 @@ class FisicObject extends Collidable {
     private mass  : number
     private speed : number
     private friction: number
+
+    protected mask = new SimplePoint( 0, 0 )
 
     protected acceleration: Vec2 = new Vec2( 0, 0 ) // [ 1000.5, 50 ]
     protected orientation : Vec2 = new Vec2( 0, 0 ) // [ -1, 1 ]
@@ -54,8 +57,12 @@ class FisicObject extends Collidable {
         this.acceleration.multiply( .9, .9 )
     }
 
-    public extractX = () => this.getX() + this.acceleration.getX() + this.orientation.getX() * this.getSpeed()
-    public extractY = () => this.getY() + this.acceleration.getY() + this.orientation.getY() * this.getSpeed()
+    public extractX = () => (this.getX() + this.mask.x ) + this.acceleration.getX() + this.orientation.getX() * this.getSpeed()
+    public extractY = () => (this.getY() + this.mask.y ) + this.acceleration.getY() + this.orientation.getY() * this.getSpeed()
+
+    public extractW = () => this.getW() - this.mask.x * 2
+    public extractH = () => this.getH() - this.mask.y * 2
+
 
     public pushX = ( x: number, bMass: number ) => {
 

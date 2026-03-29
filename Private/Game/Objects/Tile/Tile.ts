@@ -38,13 +38,12 @@ class Tile extends Collidable {
         this.renderMe( ctx, cam, spriteSheet)
         
     }
-    
 
     public getSpriteIndex = () => this.spriteIndex
 
     public static ToJson( t: Tile ){
 
-        const a = {
+        return {
             x: t.getX(),
             y: t.getY(),
             z: t.getZ(),
@@ -58,11 +57,8 @@ class Tile extends Collidable {
 
         } as TileInterface
 
-        console.log( a )
-
-        return a 
-
     }
+
 
 }
 

@@ -67,6 +67,19 @@ class Camera extends Vec2 {
     public getZoom = () => this.zoom
     public setZoom = ( zoom: number ) => this.zoom = zoom
 
+
+    public isOutside( rect: Rect, margin: undefined | number = 0 ) {
+
+        return (
+            this.getX() - margin < rect.getX() + rect.getW() &&
+            this.getY() - margin < rect.getY() + rect.getH() &&
+            this.getX() + margin + innerWidth  > rect.getX() && 
+            this.getY() + margin + innerHeight > rect.getY() 
+
+        )
+
+    }
+
 }
 
 

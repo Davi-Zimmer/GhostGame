@@ -2,6 +2,7 @@ import Game, { ObjectNames } from "../Game.js";
 import Camera from "../Objects/Basics/Camera.js";
 import Rect from "../Objects/Basics/Rect.js";
 import RenderableObject from "../Objects/Basics/Renderable.js";
+import Slime, { SlimeInterface } from "../Objects/Entity/Enemy/Slime.js";
 import Entity, { EntityInterface } from "../Objects/Entity/Entity.js";
 import Player from "../Objects/Entity/Player.js";
 import Tile, { TileInterface } from "../Objects/Tile/Tile.js";
@@ -20,7 +21,7 @@ class MapCreator {
     private commands: Commands
 
     private position = { x: 0, y: 0 }
-    private tilesize = 100
+    private tileSize: number
     private current = 0
 
     private posX = innerWidth / 2
@@ -38,11 +39,17 @@ class MapCreator {
     private infoList: showInfo[] = []
     private selectedMapName: string = "level-1"
 
+    private backup: any
+
     private tileList = Object.keys( Game.Objects )
 
-    constructor( game: Game ) {
+    private lastPlaced: RenderableObject | null = null
+
+    constructor( game: Game, tileSize: number ) {
 
         this.game = game
+
+        this.tileSize = tileSize
 
         this.addEvents()
 
@@ -51,6 +58,7 @@ class MapCreator {
 
         this.commands = new Commands( this )
 
+        this.load()
 
     }
 
@@ -62,7 +70,7 @@ class MapCreator {
 
         const index = spriteIndex === undefined ? this.current : spriteIndex
 
-        i.uniqueSprite = this.getSprite( index  )
+        i.uniqueSprite = this.getSprite( index )
 
         i.spriteIndex = index
 
@@ -70,30 +78,42 @@ class MapCreator {
 
     }
 
-    private load(){
-
-        const mapName = `Maps/${ this.selectedMapName }.json`
+    private switchGameObject( i: TileInterface | EntityInterface ){
         
-        Post( `storage/map/load`, { mapName: mapName }).then( async res => {
-            
-            const dataString = await res.json()
+        switch( i.type ){
 
-            let player: Player | null = null
+            case 'Tile'  : return this.loadTile( i, (i as TileInterface).spriteIndex )
+            case 'Entity': return new Entity( i ) as RenderableObject
+            case 'Slime' : return new Slime( i as SlimeInterface ) as RenderableObject
+            case 'Player': return new Player( i )  as RenderableObject
+
+            default: {
+
+                if( !Game.Objects[ i.type! ]  ) break
+
+                return this.loadTile( i, (i as TileInterface).spriteIndex )
+            }
+
+        }
+
+        this.error(`Unknown map item type: ${ i.type }`)
+
+    }
+
+    private loadMapData( dataString: string ){
+
+        let player: Player | null = null
 
             const data = JSON.parse( dataString ) as ( EntityInterface | TileInterface )[]
     
             const mapItems = data.map( i => {
-                 
-                if( i.type === 'Tile' )   return this.loadTile( i, (i as TileInterface).spriteIndex )
-                if( i.type === 'Entity' ) return new Entity( i ) as RenderableObject
-                if( i.type === 'Player' )   {
-                    const p = new Player( i )
-                    player = p
-                    return p as RenderableObject
-                }
-    
-                this.error(`Unknown map item type: ${ i.type }`)
-            
+                
+                const a = this.switchGameObject( i )
+
+                if( i.type === "Player" ) player = (a as Player)
+                
+                return a
+
             })
 
             if( !player ) {
@@ -102,9 +122,21 @@ class MapCreator {
             }
 
             this.game.camera.startFollow( player )
-    
+            this.game.player = player
             this.game.map = mapItems.filter( i => i !== undefined )
+    }
 
+    private load(){
+
+        const mapName = `Maps/${ this.selectedMapName }.json`
+        
+        Post( `storage/map/load`, { mapName: mapName }).then( async res => {
+            
+            const dataString = await res.json() as string
+
+            this.loadMapData( dataString )
+
+            this.backup = dataString
 
         })
         .then( () => this.info("Map Loaded"))
@@ -125,6 +157,8 @@ class MapCreator {
 
             if( i instanceof Entity ) return Entity.ToJson( i )
 
+            if( i instanceof Slime ) return Slime.ToJson( i )
+
             this.error(`Unknown map item type: ${ i.getType() }`)
 
         }).filter( i => i !== undefined )
@@ -136,12 +170,18 @@ class MapCreator {
             mapName,
             data: mapItems
         })
-        .then( () => this.info("Map Saved"))
+        .then( () => {
+            this.info("Map Saved")
+        })
         .catch( ( err ) => {
             this.error("Fail to save map")
             console.log( err )
         })
 
+    }
+
+    private restore(){
+        this.loadMapData( this.backup )
     }
 
     private next(){
@@ -163,8 +203,8 @@ class MapCreator {
 
     }
 
-    private calcMouseX = ( x: number ) => Math.floor( ( x + this.game.camera.getX() ) / this.tilesize ) * this.tilesize 
-    private calcMouseY = ( y: number ) => Math.floor( ( y + this.game.camera.getY() ) / this.tilesize ) * this.tilesize 
+    private calcMouseX = ( x: number ) => Math.floor( ( x + this.game.camera.getX() ) / this.tileSize ) * this.tileSize 
+    private calcMouseY = ( y: number ) => Math.floor( ( y + this.game.camera.getY() ) / this.tileSize ) * this.tileSize 
 
     private exactClicX = ( x: number ) => x + this.game.camera.getX()
     private exactClicY = ( y: number ) => y + this.game.camera.getY()
@@ -277,12 +317,18 @@ class MapCreator {
 
         events.onDown( 'f1', e => { e.preventDefault(); this.save() } )
         events.onDown( 'f2', e => { e.preventDefault(); this.load() } )
+        events.onDown( 'f3', e => { e.preventDefault(); this.restore() } )
 
 
     }
 
-    public addToMap( item: RenderableObject ){
+    public addToMap( item?: RenderableObject  ){
         
+        if( !item ){
+            this.warn('No Entity selected')
+            return
+        }
+
         for( const e of this.game.map ){
 
             if( IsColliding( e, item ) && item.getZ() === e.getZ() ){
@@ -299,15 +345,19 @@ class MapCreator {
     }
 
     public placeItem( x: number, y: number ){
+        
+        const a = this.switchGameObject({
+            x, y, z: this.zIndex,
+            w: this.tileSize,
+            h: this.tileSize,
+            type: this.tileList[ this.current ],
+            
+        } as TileInterface)
 
-        this.addToMap( this.loadTile({
-            x, y,
-            z: this.zIndex,
-            w: this.tilesize,
-            h: this.tilesize,
-            color: "purpe",
+        
+        this.lastPlaced = a!
 
-        } as EntityInterface) )
+        this.addToMap( a )
 
     }
 
@@ -357,7 +407,7 @@ class MapCreator {
 
     private renderCursor( ctx: CanvasRenderingContext2D, cam: Camera ){
         ctx.fillStyle = "#ffffff5f"
-        ctx.fillRect(  this.position.x - cam.getX() , this.position.y - cam.getY() , this.tilesize, this.tilesize )
+        ctx.fillRect(  this.position.x - cam.getX() , this.position.y - cam.getY() , this.tileSize, this.tileSize )
 
     }
 
@@ -374,6 +424,7 @@ class MapCreator {
             ctx.fillStyle = "white" 
 
             ctx.fillText( `Name: ${ this.selectedItem.getName() }`, this.margin, this.margin + 15 )
+            ctx.fillText( `Type: ${ this.selectedItem.getType() }`, this.margin, this.margin + 30 )
 
         }
 
@@ -445,7 +496,7 @@ class MapCreator {
 
     }
 
-    public getTileSize = () => this.tilesize
+    public getTileSize = () => this.tileSize
 
     public getZIndex = () => this.zIndex
 

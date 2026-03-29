@@ -1,6 +1,7 @@
 import Game from "../../Game.js"
 import Animation from "../Animation/Animation.js"
 import Camera from "../Basics/Camera.js"
+import SimplePoint from "../Basics/SimpleRect.js"
 import Entity, { EntityInterface } from "./Entity.js"
 
 class Player extends Entity {
@@ -50,6 +51,8 @@ class Player extends Entity {
 
         this.setW( w )
         this.setH( h )
+
+        this.mask.x = 10
 
         this.setType( 'Player' )
     }

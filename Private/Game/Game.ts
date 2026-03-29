@@ -3,6 +3,7 @@ import MapCreator from "./Map Creator/Map Creator.js"
 import Camera from "./Objects/Basics/Camera.js"
 import FisicObject from "./Objects/Basics/FisicObject.js"
 import RenderableObject from "./Objects/Basics/Renderable.js"
+import Slime from "./Objects/Entity/Enemy/Slime.js"
 import Entity from "./Objects/Entity/Entity.js"
 import Player from "./Objects/Entity/Player.js"
 import { GetOverlap, IsColliding } from "./Physics/Collision.js"
@@ -19,8 +20,6 @@ interface InputFunctionInterface {
 
 }
 
-
-
 export enum ObjectNames {
     Grass  = "Grass",
     Player = "Player",
@@ -35,6 +34,8 @@ class Game {
 
     private static Instance: Game
 
+    private tileSize = 100
+
     public static GetInstance(){
         
         if( !this.Instance ) this.Instance = new Game()
@@ -44,10 +45,13 @@ class Game {
     }
 
     public static Objects: Record< string, [ number, number, number, number ] > = {
-        Grass     : [ 151, 1,  32, 32 ],
-        Grass_Hole: [ 118, 1,  32, 32 ],
-        Sign      : [ 118, 34, 32, 32 ],
-        Sign2     : [ 118, 67, 32, 32 ]
+        Grass     : [ 151, 1,   32, 32 ],
+        Grass_Hole: [ 118, 1,   32, 32 ],
+        Sign      : [ 118, 34,  32, 32 ],
+        Sign2     : [ 118, 67,  32, 32 ],
+        Tombstone : [ 118, 100, 32, 32 ],
+        Player    : [ 0,   0,   27, 36 ],
+        Slime     : [ 1,   158, 48, 42 ],
     }
 
 
@@ -122,7 +126,7 @@ class Game {
         //@ts-ignore
         window.game = this
 
-        this.mapCreator = new MapCreator( this )
+        this.mapCreator = new MapCreator( this, this.tileSize )
 
     }
 
@@ -265,6 +269,8 @@ class Game {
 
         for( const other of this.map ){
 
+            if( !this.camera.isOutside( other, 2 * this.tileSize )  ) continue
+
             if( other === e ) continue
 
             if( !other.getSolid() ) continue
@@ -300,6 +306,8 @@ class Game {
 
         for( const n of this.map ){
 
+            if( !this.camera.isOutside( n, 2 * this.tileSize )  ) continue
+
             if( n instanceof FisicObject && n.useCollision() ) this.collision( n )
 
             n.tick()
@@ -313,6 +321,13 @@ class Game {
     }
 
     public getSpriteSheet = () => this.spriteSheet
+
+    public extractSolidTiles(){
+        
+        return this.map.filter( i => i.getSolid() && i.getType() === "Tile" )
+
+    }
+
 }
 
 

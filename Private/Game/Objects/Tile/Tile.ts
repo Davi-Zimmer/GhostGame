@@ -4,12 +4,14 @@ import Collidable, { CollidableInterface } from "../Basics/Collidable.js"
 export interface TileInterface extends CollidableInterface {
 }
 
-
 class Tile extends Collidable {
+
 
     constructor( props: TileInterface ){
         
         super( props )
+
+        this.setType( props.type ?? "Tile" )
 
     }
 
@@ -32,7 +34,22 @@ class Tile extends Collidable {
         this.renderMe( ctx, cam, spriteSheet)
         
     }
+    
+    public static ToJson( t: Tile ){
 
+        return {
+            x: t.getX(),
+            y: t.getY(),
+            z: t.getZ(),
+            w: t.getW(),
+            h: t.getH(),
+            type: t.getType(),
+            name: t.getName(),
+            collision: t.useCollision(),
+            solid: t.getSolid(),
+        } as TileInterface
+
+    }
 
 }
 

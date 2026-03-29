@@ -11,6 +11,11 @@ class Player extends Entity {
 
         super( props )
 
+        this.setup()
+    }
+
+    private addEvents(){
+
         const events = Game.GetInstance().events
 
         const playAnim = () => this.animation.playAnimation()
@@ -26,6 +31,12 @@ class Player extends Entity {
         events.onUp( 's', () => { this.orientation.setY( 0 ); ( stopAnim() ) } )
         events.onUp( 'd', () => { this.orientation.setX( 0 ); ( stopAnim() ) } )
 
+    }
+
+    private setup(){
+
+        this.addEvents()
+
         this.setSpeed( 10 )
 
         this.setMass( 6 )
@@ -37,10 +48,10 @@ class Player extends Entity {
         const w = 27 * scale
         const h = 36 * scale
 
-
-
         this.setW( w )
         this.setH( h )
+
+        this.setType( 'Player' )
     }
 
     private fillSprites(){

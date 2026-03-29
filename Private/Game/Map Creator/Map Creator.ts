@@ -4,8 +4,60 @@ import Rect from "../Objects/Basics/Rect.js";
 import RenderableObject from "../Objects/Basics/Renderable.js";
 import Entity, { EntityInterface } from "../Objects/Entity/Entity.js";
 import Player from "../Objects/Entity/Player.js";
-import Tile from "../Objects/Tile/Tile.js";
+import Tile, { TileInterface } from "../Objects/Tile/Tile.js";
 import { ClickCollision } from "../Physics/Collision.js";
+import Post from "../Utils/Post.js";
+
+type stackItens = { name: string, z: number }
+
+type showInfo = { content: string, color: string, ticks: number }
+
+/*
+type sickJsonThing =
+{
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+    h: number;
+    name: string;
+    solid: boolean;
+    type: string;
+    sprite: number | undefined;
+    mass?: undefined;
+    speed?: undefined;
+    useCollision?: undefined;
+    friction?: undefined;
+} | {
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+    h: number;
+    name: string;
+    solid: boolean;
+    mass: number;
+    type: string;
+    speed: number;
+    useCollision: boolean;
+    friction: number;
+    sprite: number | undefined;
+} | {
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+    h: number;
+    name: string;
+    solid: boolean;
+    mass: number;
+    type: string;
+    speed: number;
+    useCollision: boolean;
+    sprite: number | undefined;
+    friction?: undefined;
+}
+*/
 
 class MapCreator {
 
@@ -23,6 +75,12 @@ class MapCreator {
     private zIndex = 0
 
     private selectedItem: RenderableObject | null = null
+    private selectionStack: stackItens[] = []
+    private infoList: showInfo[] = []
+    private selectedMapName: string = "level-1"
+
+    // private uniqueSprites: Array< [ number, number, number, number ] > = [[ 0, 0, 0, 0 ]]
+    // private spriteSelected: number = 0
 
     private tileList = [
         ObjectNames.Grass,
@@ -38,10 +96,70 @@ class MapCreator {
 
         this.addMouseEvents()
 
-
         //@ts-ignore
         window.mapCreator = this
 
+
+    }
+
+    private load(){
+        const mapName = `Maps/${ this.selectedMapName }.json`
+
+        
+        Post( `storage/map/load`, { mapName: mapName }).then( dataString => {
+            
+            let player: Player | null = null
+
+            const data = JSON.parse( dataString ) as ( EntityInterface | TileInterface )[]
+    
+            const mapItems = data.map( i => {
+                 
+                if( i.type === 'Tile' )   return new Tile  ( i ) as RenderableObject
+                if( i.type === 'Entity' ) return new Entity( i ) as RenderableObject
+                if( i.type === 'Player' )   {
+                    const p = new Player( i )
+                    player = p
+                    return p as RenderableObject
+                }
+    
+                this.error(`Unknown map item type: ${ i.type }`)
+            
+            })
+
+            if( !player ) {
+                this.error(`Missing Player in map`)
+                return
+            }
+
+            this.game.camera.startFollow( player )
+    
+            this.game.map = mapItems.filter( i => i !== undefined )
+
+        })
+
+    }
+
+    private save(){
+
+        const mapItems = this.game.map.map( i => {
+
+            if( i instanceof Tile ) return Tile.ToJson( i )
+                
+            if( i instanceof Player ) return Player.ToJson( i )
+
+            if( i instanceof Entity ) return Entity.ToJson( i )
+
+            this.error(`Unknown map item type: ${ i.getType() }`)
+
+        }).filter( i => i !== undefined )
+
+
+        const mapName = `Maps/${ this.selectedMapName }.json`
+        
+        Post( 'storage/map/save', {
+            mapName,
+            data: mapItems
+        })
 
     }
 
@@ -81,21 +199,23 @@ class MapCreator {
 
         events.onMouseDown( 0, e => {
            
-            const a = this.game.map.filter( x => 
+            const collidingObjects = this.game.map.filter( x => 
                     ClickCollision(
                         this.exactClicX( e.clientX ),
                         this.exactClicY( e.clientY ), x
                     )
                 )
 
-            if( a.length === 0 ) {
+            if( collidingObjects.length === 0 ) {
                 
                 this.selectedItem = null
                 
                 return
             }
 
-            a.forEach( x => {
+            this.selectionStack = collidingObjects.map( m => ({ z: m.getZ(), name: m.getName() }))
+
+            collidingObjects.forEach( x => {
                 console.log( `Z: ${x.getZ()}, Name: ${x.getName()}`)
 
                 if( x.getZ() === this.zIndex ) this.selectedItem = x
@@ -140,6 +260,11 @@ class MapCreator {
 
         })
 
+        events.onDown( 'f1', () => this.save() )
+        events.onDown( 'f2', () => this.load() )
+
+
+
     }
 
     private middleClick( x: number, y: number ){
@@ -153,7 +278,28 @@ class MapCreator {
 
     }
 
+    private info( content: string, ticks: number = 500 ){
+        this.infoList.push({ content, color: "blue", ticks })
+    }
+
+    private error( content: string, ticks: number = 500 ){
+        this.infoList.push({ content, color: "red", ticks })
+    }
+
+    private warn( content: string, ticks: number = 500 ){
+        this.infoList.push({ content, color: "yellow", ticks })
+    }
+
     private leftClick( x: number, y: number ){
+
+        const alrealyPlaced = this.game.map.some( i => ClickCollision( x + 1, y + 1, i ) && i.getZ() === this.zIndex )
+        
+        if( alrealyPlaced ){
+            
+            this.error( 'Ja tem coisa ae' )
+
+            return
+        }
 
         const name = this.tileList[ this.current ]
 
@@ -161,7 +307,7 @@ class MapCreator {
 
         const a = {
             x, y,
-            z: property.z,
+            z: this.zIndex,
             w: this.tilesize,
             h: this.tilesize,
             color: "purpe",
@@ -174,11 +320,7 @@ class MapCreator {
             a.mass = property.mass
         }
 
-        const aa = new Tile( a )
-
-        console.log( aa )  
-
-        this.game.addToMap( aa )
+        this.game.addToMap( new Tile( a ) )
 
 
         /* 
@@ -210,6 +352,7 @@ class MapCreator {
     }
 
     public renderCursor( ctx: CanvasRenderingContext2D, cam: Camera ){
+        ctx.font = "10px arial"
 
         ctx.fillStyle = "#ffffff5f"
         ctx.fillRect(  this.position.x - cam.getX() , this.position.y - cam.getY() , this.tilesize, this.tilesize )
@@ -227,19 +370,39 @@ class MapCreator {
         }
         
         
+        ctx.fillStyle = "white" 
+
         ctx.fillText( `Z: ${this.zIndex}`, this.margin, this.margin )
         
         if( this.selectedItem ) {
 
             this.renderSelectedItem( ctx, cam )
+            ctx.fillStyle = "white" 
 
             ctx.fillText( `Name: ${ this.selectedItem.getName() }`, this.margin, this.margin + 15 )
 
-
         }
 
-    }
 
+        this.selectionStack.forEach( ( item, index ) => {
+            ctx.fillText( `Z:${ item.z } Name: ${ item.name }`, this.margin, this.margin + 50 +  (15 * index) )
+        })
+
+        ctx.font = "20px arial"
+
+        this.infoList = this.infoList.filter( i => i.ticks > 0 )
+        
+        this.infoList.forEach( ( info, index ) => {
+            
+            info.ticks--
+
+            ctx.fillStyle = info.color
+            
+            ctx.fillText( info.content, ( innerWidth - 50 ) - info.content.length * 10, 50 + index * 20 )
+            
+        })
+
+    }
 
 }
 

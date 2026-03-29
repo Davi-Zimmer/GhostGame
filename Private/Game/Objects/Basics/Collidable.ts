@@ -2,6 +2,7 @@ import RenderableObject, { RenderableObjectInterface } from "./Renderable.js";
 
 export interface CollidableInterface extends RenderableObjectInterface {
     solid?: boolean
+    collisio?: boolean
 }
 
 class Collidable extends RenderableObject {
@@ -14,6 +15,8 @@ class Collidable extends RenderableObject {
         super( props )
 
         this.setSolid( props.solid ?? false )
+
+        this.setCollision( props.collisio ?? false )
 
         this.setZ( props.z ?? -1 )
 

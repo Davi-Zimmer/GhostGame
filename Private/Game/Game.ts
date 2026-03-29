@@ -2,7 +2,6 @@ import EventManager from "./Engine/EventManager.js"
 import MapCreator from "./Map Creator/Map Creator.js"
 import Camera from "./Objects/Basics/Camera.js"
 import FisicObject from "./Objects/Basics/FisicObject.js"
-import Rect from "./Objects/Basics/Rect.js"
 import RenderableObject from "./Objects/Basics/Renderable.js"
 import Entity from "./Objects/Entity/Entity.js"
 import Player from "./Objects/Entity/Player.js"
@@ -20,6 +19,21 @@ interface InputFunctionInterface {
 
 }
 
+export interface ObjectProperty {
+    sprite       : [ number, number, number, number ]
+    isSolid      : boolean
+    z            : number
+    mass         ?: number
+}
+
+
+export enum ObjectNames {
+    Grass  = "Grass",
+    Player = "Player",
+    Tile   = "Tile",
+    Entity = "Entity",
+} 
+
 class Game {
 
     //@ts-ignore
@@ -34,6 +48,16 @@ class Game {
         return this.Instance
 
     }
+
+    public static Objects: Record< string, ObjectProperty > = {
+        Grass : {
+            sprite       : [ 151, 1, 32, 32 ],
+            isSolid      : false,
+            z            : -1
+        }
+    }
+
+
     /*
     private inputFunctions = {
 
@@ -139,6 +163,9 @@ class Game {
                 w: 100,
                 h: 100,
                 color: "blue",
+                solid: true,
+                name: "preie"
+
             })
         
 
@@ -150,8 +177,12 @@ class Game {
                 y: 0,
                 z: 0,
                 w: 200,
-                h: 200
+                h: 200,
+                solid: true,
+                name: "birulu"
+
             })
+            
         )
 
         this.addToMap(
@@ -161,7 +192,10 @@ class Game {
                 z: 0,
                 w: 200,
                 h: 200,
-                mass: 5
+                mass: 5,
+                solid: true,
+                name: "juliano"
+
             })
         )
 
@@ -175,17 +209,16 @@ class Game {
 
     public camera: Camera = new Camera( 0, 0, 1 )
 
-    public map: FisicObject[] = []
+    public map: RenderableObject[] = []
 
-    public addToMap( x: FisicObject ){
+    public addToMap( x: RenderableObject ){
         
         this.map.push( x )
-
         this.map = this.map.sort( ( a, b ) => a.getZ() - b.getZ() )
     
     }
 
-    public removeOfMap( x: FisicObject ){
+    public removeOfMap( x: RenderableObject ){
 
         this.map = this.map.filter( n => n !== x ) 
 
@@ -209,10 +242,11 @@ class Game {
 
             if( other === e ) continue
 
-            /// solid?
             if( !other.getSolid() ) continue
 
             if( !IsColliding( e, other ) ) continue
+
+            e.collisionTrigger( other as FisicObject )
 
             const overlap = GetOverlap( e, other )
 
@@ -250,7 +284,7 @@ class Game {
 
         for( const n of this.map ){
 
-            if( n instanceof RenderableObject && n.getSolid() ) this.collision( n )
+            if( n instanceof FisicObject && n.useCollision() ) this.collision( n )
 
             n.tick()
 

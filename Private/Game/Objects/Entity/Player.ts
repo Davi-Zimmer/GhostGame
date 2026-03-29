@@ -41,7 +41,7 @@ class Player extends Entity {
         anim.forSprites( 0,  0, 27, 36, 4, "down" , 5 )
         anim.forSprites( 0, 37, 27, 36, 4, "left" , 5 )
         anim.forSprites( 0, 75, 27, 36, 4, "right", 5 )
-        anim.forSprites( 0, 115, 27, 36, 4, "up"  , 5 )
+        anim.forSprites( 0, 115, 27, 36, 4,"up"   , 5 )
 
     }
 

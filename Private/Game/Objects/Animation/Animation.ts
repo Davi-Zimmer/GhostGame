@@ -8,7 +8,6 @@ class Animation {
 
     private sprites: Record< string, Array< [ number, number, number, number, number ]> > = {}
 
-
     public createAnimations( ...names: string[] ){
 
         for( let i = 0; i < names.length - 1; i++ ){

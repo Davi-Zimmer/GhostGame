@@ -19,12 +19,6 @@ interface InputFunctionInterface {
 
 }
 
-export interface ObjectProperty {
-    sprite       : [ number, number, number, number ]
-    isSolid      : boolean
-    z            : number
-    mass         ?: number
-}
 
 
 export enum ObjectNames {
@@ -49,12 +43,8 @@ class Game {
 
     }
 
-    public static Objects: Record< string, ObjectProperty > = {
-        Grass : {
-            sprite       : [ 151, 1, 32, 32 ],
-            isSolid      : false,
-            z            : -1
-        }
+    public static Objects: Record< string, [ number, number, number, number ] > = {
+        Grass : [ 151, 1, 32, 32 ],
     }
 
 
@@ -164,7 +154,7 @@ class Game {
                 h: 100,
                 color: "blue",
                 solid: true,
-                name: "preie"
+                name: "preie",
 
             })
         
@@ -291,10 +281,11 @@ class Game {
 
         }
 
-       this.mapCreator?.renderCursor( ctx, this.camera ) 
+       this.mapCreator?.render( ctx, this.camera ) 
 
     }
 
+    public getSpriteSheet = () => this.spriteSheet
 }
 
 

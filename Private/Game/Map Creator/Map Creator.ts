@@ -12,52 +12,6 @@ type stackItens = { name: string, z: number }
 
 type showInfo = { content: string, color: string, ticks: number }
 
-/*
-type sickJsonThing =
-{
-    x: number;
-    y: number;
-    z: number;
-    w: number;
-    h: number;
-    name: string;
-    solid: boolean;
-    type: string;
-    sprite: number | undefined;
-    mass?: undefined;
-    speed?: undefined;
-    useCollision?: undefined;
-    friction?: undefined;
-} | {
-    x: number;
-    y: number;
-    z: number;
-    w: number;
-    h: number;
-    name: string;
-    solid: boolean;
-    mass: number;
-    type: string;
-    speed: number;
-    useCollision: boolean;
-    friction: number;
-    sprite: number | undefined;
-} | {
-    x: number;
-    y: number;
-    z: number;
-    w: number;
-    h: number;
-    name: string;
-    solid: boolean;
-    mass: number;
-    type: string;
-    speed: number;
-    useCollision: boolean;
-    sprite: number | undefined;
-    friction?: undefined;
-}
-*/
 
 class MapCreator {
 
@@ -79,16 +33,7 @@ class MapCreator {
     private infoList: showInfo[] = []
     private selectedMapName: string = "level-1"
 
-    // private uniqueSprites: Array< [ number, number, number, number ] > = [[ 0, 0, 0, 0 ]]
-    // private spriteSelected: number = 0
-
-    private tileList = [
-        ObjectNames.Grass,
-        ObjectNames.Player,
-        ObjectNames.Tile,
-        ObjectNames.Entity
-
-    ]
+    private tileList = Object.keys( Game.Objects )
 
     constructor( game: Game ) {
 
@@ -99,22 +44,34 @@ class MapCreator {
         //@ts-ignore
         window.mapCreator = this
 
+    }
+
+    private getSelectedSprite(){
+        return Game.Objects[ this.tileList[ this.current ] ]
+    }
+
+    private loadTile( i: TileInterface ){
+
+        i.uniqueSprite = this.getSelectedSprite()
+
+        return new Tile( i ) as RenderableObject
 
     }
 
     private load(){
         const mapName = `Maps/${ this.selectedMapName }.json`
-
         
-        Post( `storage/map/load`, { mapName: mapName }).then( dataString => {
+        Post( `storage/map/load`, { mapName: mapName }).then( async res => {
             
+            const dataString = await res.json()
+
             let player: Player | null = null
 
             const data = JSON.parse( dataString ) as ( EntityInterface | TileInterface )[]
     
             const mapItems = data.map( i => {
                  
-                if( i.type === 'Tile' )   return new Tile  ( i ) as RenderableObject
+                if( i.type === 'Tile' )   return this.loadTile( i )
                 if( i.type === 'Entity' ) return new Entity( i ) as RenderableObject
                 if( i.type === 'Player' )   {
                     const p = new Player( i )
@@ -135,6 +92,12 @@ class MapCreator {
     
             this.game.map = mapItems.filter( i => i !== undefined )
 
+
+        })
+        .then( () => this.info("Map Loaded"))
+        .catch( ( err ) => {
+            this.error("Fail to load map")
+            console.log( err )
         })
 
     }
@@ -160,13 +123,18 @@ class MapCreator {
             mapName,
             data: mapItems
         })
+        .then( () => this.info("Map Saved"))
+        .catch( ( err ) => {
+            this.error("Fail to save map")
+            console.log( err )
+        })
 
     }
 
     private next(){
         this.current++
 
-        if( this.current > this.tileList.length - 1) {
+        if( this.current > this.tileList.length - 1 ) {
             this.current = 0
             return
         }
@@ -301,39 +269,14 @@ class MapCreator {
             return
         }
 
-        const name = this.tileList[ this.current ]
-
-        const property = Game.Objects[ name ]
-
-        const a = {
+        this.game.addToMap( this.loadTile({
             x, y,
             z: this.zIndex,
             w: this.tilesize,
             h: this.tilesize,
             color: "purpe",
-            
-        } as EntityInterface
 
-        if( property ){
-            a.solid = property.isSolid,
-            a.uniqueSprite = property.sprite
-            a.mass = property.mass
-        }
-
-        this.game.addToMap( new Tile( a ) )
-
-
-        /* 
-        this.game.addToMap(
-            new Entity( {
-                x, y,
-                z: 0,
-                w: this.tilesize,
-                h: this.tilesize,
-                color: "purpe"
-            })
-        )
-        */
+        } as EntityInterface) )
 
     }
 
@@ -351,25 +294,15 @@ class MapCreator {
 
     }
 
-    public renderCursor( ctx: CanvasRenderingContext2D, cam: Camera ){
+    private renderCursor( ctx: CanvasRenderingContext2D, cam: Camera ){
         ctx.font = "10px arial"
 
         ctx.fillStyle = "#ffffff5f"
         ctx.fillRect(  this.position.x - cam.getX() , this.position.y - cam.getY() , this.tilesize, this.tilesize )
 
+    }
 
-        ctx.fillStyle = "purple" 
-        ctx.fillRect( ( this.getPos() + this.current * this.slotSize + this.current * this.margin) - 5, this.posY -5 , this.slotSize + 10, this.slotSize + 10 )
-
-
-        ctx.fillStyle = "gray" 
-        for( let x = 0; x < this.showItens; x++ ){
-            
-            ctx.fillRect(  this.getPos() + x * this.slotSize + x * this.margin, this.posY, this.slotSize, this.slotSize )
-
-        }
-        
-        
+    private renderInfos( ctx: CanvasRenderingContext2D, cam: Camera  ){
         ctx.fillStyle = "white" 
 
         ctx.fillText( `Z: ${this.zIndex}`, this.margin, this.margin )
@@ -401,6 +334,44 @@ class MapCreator {
             ctx.fillText( info.content, ( innerWidth - 50 ) - info.content.length * 10, 50 + index * 20 )
             
         })
+    }
+
+    private renderHud( ctx: CanvasRenderingContext2D, cam: Camera ){
+
+        ctx.fillStyle = "purple" 
+        ctx.fillRect( ( this.getPos() + this.current * this.slotSize + this.current * this.margin) - 5, this.posY -5 , this.slotSize + 10, this.slotSize + 10 )
+
+
+        ctx.fillStyle = "gray" 
+        for( let x = 0; x < this.showItens; x++ ){
+            
+            
+            if( x >= this.tileList.length ){
+
+                ctx.fillRect(  this.getPos() + x * this.slotSize + x * this.margin, this.posY, this.slotSize, this.slotSize )
+                
+                continue
+
+            }
+
+            const s = Game.Objects[ this.tileList[ x ] ]
+
+            ctx.drawImage( this.game.getSpriteSheet(), s[0], s[1], s[2], s[3],
+                this.getPos() + x * this.slotSize + x * this.margin, this.posY, this.slotSize, this.slotSize 
+            )
+
+        }
+
+    }
+
+    public render( ctx: CanvasRenderingContext2D, cam: Camera ){
+
+        this.renderCursor( ctx, cam )
+
+        this.renderHud( ctx, cam )
+        
+        this.renderInfos( ctx, cam )
+       
 
     }
 

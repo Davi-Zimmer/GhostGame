@@ -5,8 +5,9 @@ import RenderableObject from "../Objects/Basics/Renderable.js";
 import Entity, { EntityInterface } from "../Objects/Entity/Entity.js";
 import Player from "../Objects/Entity/Player.js";
 import Tile, { TileInterface } from "../Objects/Tile/Tile.js";
-import { ClickCollision } from "../Physics/Collision.js";
+import { ClickCollision, IsColliding } from "../Physics/Collision.js";
 import Post from "../Utils/Post.js";
+import Commands from "./Commands.js";
 
 type stackItens = { name: string, z: number }
 
@@ -15,7 +16,9 @@ type showInfo = { content: string, color: string, ticks: number }
 
 class MapCreator {
 
-    private game: Game
+    public game: Game
+    private commands: Commands
+
     private position = { x: 0, y: 0 }
     private tilesize = 100
     private current = 0
@@ -25,6 +28,8 @@ class MapCreator {
     private slotSize = 50
     private margin = 10
     private showItens = 10
+
+    private shift = false
 
     private zIndex = 0
 
@@ -39,26 +44,34 @@ class MapCreator {
 
         this.game = game
 
-        this.addMouseEvents()
+        this.addEvents()
 
         //@ts-ignore
         window.mapCreator = this
 
+        this.commands = new Commands( this )
+
+
     }
 
-    private getSelectedSprite(){
-        return Game.Objects[ this.tileList[ this.current ] ]
+    private getSprite( selected: number ){
+        return Game.Objects[ this.tileList[ selected ] ]
     }
 
-    private loadTile( i: TileInterface ){
+    public loadTile( i: TileInterface, spriteIndex?: number | undefined ){
 
-        i.uniqueSprite = this.getSelectedSprite()
+        const index = spriteIndex === undefined ? this.current : spriteIndex
+
+        i.uniqueSprite = this.getSprite( index  )
+
+        i.spriteIndex = index
 
         return new Tile( i ) as RenderableObject
 
     }
 
     private load(){
+
         const mapName = `Maps/${ this.selectedMapName }.json`
         
         Post( `storage/map/load`, { mapName: mapName }).then( async res => {
@@ -71,7 +84,7 @@ class MapCreator {
     
             const mapItems = data.map( i => {
                  
-                if( i.type === 'Tile' )   return this.loadTile( i )
+                if( i.type === 'Tile' )   return this.loadTile( i, (i as TileInterface).spriteIndex )
                 if( i.type === 'Entity' ) return new Entity( i ) as RenderableObject
                 if( i.type === 'Player' )   {
                     const p = new Player( i )
@@ -156,7 +169,7 @@ class MapCreator {
     private exactClicX = ( x: number ) => x + this.game.camera.getX()
     private exactClicY = ( y: number ) => y + this.game.camera.getY()
 
-    private addMouseEvents(){
+    private addEvents(){
 
         const events = this.game.events
         
@@ -165,14 +178,51 @@ class MapCreator {
             this.position.y = this.calcMouseY( e.clientY )
         })
 
+        events.onDown( 'shift', e => {
+            this.shift = true
+        })
+
+        events.onUp( 'shift', () => {
+            this.shift = false
+
+            if( this.commands.coordsStart && this.commands.coordsEnd ){
+
+                this.commands.fill()
+                this.commands.coordsStart = null
+                this.commands.coordsEnd   = null
+            }
+
+        })
+
         events.onMouseDown( 0, e => {
            
+            if( this.shift ){
+                
+                if( !this.commands.coordsStart ) {
+
+                    this.commands.coordsStart = {
+                        x: this.calcMouseX( e.clientX ),
+                        y: this.calcMouseY( e.clientY ),
+                    }
+
+                }
+                else {
+                    this.commands.coordsEnd = {
+                        x: this.calcMouseX( e.clientX ),
+                        y: this.calcMouseY( e.clientY ),
+                    }
+                    
+                }
+
+           }
+
+
             const collidingObjects = this.game.map.filter( x => 
-                    ClickCollision(
-                        this.exactClicX( e.clientX ),
-                        this.exactClicY( e.clientY ), x
-                    )
+                ClickCollision(
+                    this.exactClicX( e.clientX ),
+                    this.exactClicY( e.clientY ), x
                 )
+            )
 
             if( collidingObjects.length === 0 ) {
                 
@@ -184,8 +234,6 @@ class MapCreator {
             this.selectionStack = collidingObjects.map( m => ({ z: m.getZ(), name: m.getName() }))
 
             collidingObjects.forEach( x => {
-                console.log( `Z: ${x.getZ()}, Name: ${x.getName()}`)
-
                 if( x.getZ() === this.zIndex ) this.selectedItem = x
 
             })
@@ -221,17 +269,45 @@ class MapCreator {
         events.onDown( 'arrowdown', () => this.zIndex -= 1 )
 
         events.onDown( '1', () => {
-            this.leftClick(
+            this.placeItem(
                 this.position.x,
                 this.position.y
             )
-
         })
 
-        events.onDown( 'f1', () => this.save() )
-        events.onDown( 'f2', () => this.load() )
+        events.onDown( 'f1', e => { e.preventDefault(); this.save() } )
+        events.onDown( 'f2', e => { e.preventDefault(); this.load() } )
 
 
+    }
+
+    public addToMap( item: RenderableObject ){
+        
+        for( const e of this.game.map ){
+
+            if( IsColliding( e, item ) && item.getZ() === e.getZ() ){
+
+                this.error( 'Ja tem coisa ae' )
+                
+                return
+            }
+
+        }
+        
+        this.game.addToMap( item )
+
+    }
+
+    public placeItem( x: number, y: number ){
+
+        this.addToMap( this.loadTile({
+            x, y,
+            z: this.zIndex,
+            w: this.tilesize,
+            h: this.tilesize,
+            color: "purpe",
+
+        } as EntityInterface) )
 
     }
 
@@ -241,8 +317,15 @@ class MapCreator {
     }
 
     private rightClick( x: number, y: number, e: MouseEvent ){
+
+        if( e.ctrlKey ){
+
+            this.game.map = this.game.map.filter( item => !ClickCollision( x, y, item )  )
+            
+            return
+        }
         
-        this.game.map = this.game.map.filter( item => !ClickCollision( x, y, item ) )
+        this.game.map = this.game.map.filter( item => !(ClickCollision( x, y, item ) && item.getZ() === this.zIndex) )
 
     }
 
@@ -256,28 +339,6 @@ class MapCreator {
 
     private warn( content: string, ticks: number = 500 ){
         this.infoList.push({ content, color: "yellow", ticks })
-    }
-
-    private leftClick( x: number, y: number ){
-
-        const alrealyPlaced = this.game.map.some( i => ClickCollision( x + 1, y + 1, i ) && i.getZ() === this.zIndex )
-        
-        if( alrealyPlaced ){
-            
-            this.error( 'Ja tem coisa ae' )
-
-            return
-        }
-
-        this.game.addToMap( this.loadTile({
-            x, y,
-            z: this.zIndex,
-            w: this.tilesize,
-            h: this.tilesize,
-            color: "purpe",
-
-        } as EntityInterface) )
-
     }
 
     private getPos(){
@@ -295,14 +356,14 @@ class MapCreator {
     }
 
     private renderCursor( ctx: CanvasRenderingContext2D, cam: Camera ){
-        ctx.font = "10px arial"
-
         ctx.fillStyle = "#ffffff5f"
         ctx.fillRect(  this.position.x - cam.getX() , this.position.y - cam.getY() , this.tilesize, this.tilesize )
 
     }
 
     private renderInfos( ctx: CanvasRenderingContext2D, cam: Camera  ){
+        ctx.font = "10px arial"
+
         ctx.fillStyle = "white" 
 
         ctx.fillText( `Z: ${this.zIndex}`, this.margin, this.margin )
@@ -337,6 +398,7 @@ class MapCreator {
     }
 
     private renderHud( ctx: CanvasRenderingContext2D, cam: Camera ){
+        ctx.font = "10px arial"
 
         ctx.fillStyle = "purple" 
         ctx.fillRect( ( this.getPos() + this.current * this.slotSize + this.current * this.margin) - 5, this.posY -5 , this.slotSize + 10, this.slotSize + 10 )
@@ -362,6 +424,14 @@ class MapCreator {
 
         }
 
+        if( this.shift ){
+            ctx.font = "15px arial"
+
+            ctx.fillStyle = 'blue'
+
+            ctx.fillText('Selection mode', this.margin, innerHeight - this.margin - 100 )
+        }
+
     }
 
     public render( ctx: CanvasRenderingContext2D, cam: Camera ){
@@ -374,6 +444,10 @@ class MapCreator {
        
 
     }
+
+    public getTileSize = () => this.tilesize
+
+    public getZIndex = () => this.zIndex
 
 }
 

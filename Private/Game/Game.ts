@@ -44,7 +44,10 @@ class Game {
     }
 
     public static Objects: Record< string, [ number, number, number, number ] > = {
-        Grass : [ 151, 1, 32, 32 ],
+        Grass     : [ 151, 1,  32, 32 ],
+        Grass_Hole: [ 118, 1,  32, 32 ],
+        Sign      : [ 118, 34, 32, 32 ],
+        Sign2     : [ 118, 67, 32, 32 ]
     }
 
 
@@ -226,6 +229,38 @@ class Game {
 
     }
 
+    private collisionPush( horizontal: boolean, overlap: { x: number, y: number }, other: RenderableObject, e: FisicObject ){
+        
+        if( other instanceof Entity  ){
+
+            if( horizontal ){
+    
+                other.applyX( -overlap.x )
+    
+                other.getAcceleration().multiplyX( -.5 )
+    
+                e.pushX( Math.sign( overlap.x ), other.getMass() )
+    
+    
+            } else {
+                other.applyY( -overlap.y ) 
+    
+                other.getAcceleration().multiplyY( -.5 )
+    
+                e.pushY( Math.sign( overlap.y ), other.getMass() )
+    
+            }
+
+            return
+
+        }
+
+        if( horizontal ) other.applyX( -overlap.x )
+        else other.applyY( -overlap.y ) 
+
+
+    }
+
     private collision( e: FisicObject ){
 
         for( const other of this.map ){
@@ -244,15 +279,7 @@ class Game {
             
             const horizontal = Math.abs( overlap.x ) < Math.abs( overlap.y )
             
-            if( horizontal ){
-                other.applyX( -overlap.x )
-                e.pushX( Math.sign( overlap.x ), other.getMass() )
-
-            } else {
-                other.applyY( -overlap.y ) 
-                e.pushY( Math.sign( overlap.y ), other.getMass() )
-
-            }
+            this.collisionPush( horizontal, overlap, other, e )
 
             if( other instanceof Player ){ this.camera.followTargetOverlap = overlap }
 

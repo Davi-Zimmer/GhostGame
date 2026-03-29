@@ -5,13 +5,14 @@ export interface RenderableObjectInterface extends RectInterface {
     name         ?: string
     uniqueSprite ?: [ number, number, number, number ]
     type         ?: string
-
 }
 
 class RenderableObject extends Rect {
+
     private type: string
 
     private name: string
+
 
     private uniqueSprite: [ number, number, number, number ]
 
@@ -23,6 +24,7 @@ class RenderableObject extends Rect {
 
         this.uniqueSprite = props.uniqueSprite ?? [ 0, 0, 0, 0 ]
         this.type = props.type ?? "RenderableObject"
+
 
     }
 
@@ -42,7 +44,6 @@ class RenderableObject extends Rect {
     public getType = () => this.type
     public setType = ( t: string ) => this.type = t
 
-
     public static ToJson( e: RenderableObject ) {
 
         return {
@@ -56,8 +57,6 @@ class RenderableObject extends Rect {
         } as RenderableObjectInterface
 
     }
-
-    public getMass = () => 0 
 
 }
 

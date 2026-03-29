@@ -2,7 +2,7 @@ class KeyEvent {
 
     private key: string
     private ctrl: boolean
-    private preventDefault: () => void
+    public preventDefault: () => void
 
 
     constructor( key: string, ctrl: boolean, preventDefault: () => void ){

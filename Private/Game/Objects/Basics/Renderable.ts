@@ -57,6 +57,8 @@ class RenderableObject extends Rect {
 
     }
 
+    public getMass = () => 0 
+
 }
 
 

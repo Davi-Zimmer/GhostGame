@@ -19,7 +19,6 @@ class Entity extends FisicObject {
     constructor( props : EntityInterface ){
 
         super( props )
-
         
         this.setType( props.type ?? "Entity" )
 

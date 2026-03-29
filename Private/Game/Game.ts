@@ -246,11 +246,11 @@ class Game {
             
             if( horizontal ){
                 other.applyX( -overlap.x )
-                e.pushX( overlap.x )
+                e.pushX( Math.sign( overlap.x ), other.getMass() )
 
             } else {
                 other.applyY( -overlap.y ) 
-                e.pushY( overlap.y )
+                e.pushY( Math.sign( overlap.y ), other.getMass() )
 
             }
 

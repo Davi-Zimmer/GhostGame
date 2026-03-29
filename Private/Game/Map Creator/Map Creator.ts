@@ -1,5 +1,7 @@
 import Game, { ObjectNames } from "../Game.js";
 import Camera from "../Objects/Basics/Camera.js";
+import Rect from "../Objects/Basics/Rect.js";
+import RenderableObject from "../Objects/Basics/Renderable.js";
 import Entity, { EntityInterface } from "../Objects/Entity/Entity.js";
 import Player from "../Objects/Entity/Player.js";
 import Tile from "../Objects/Tile/Tile.js";
@@ -18,6 +20,10 @@ class MapCreator {
     private margin = 10
     private showItens = 10
 
+    private zIndex = 0
+
+    private selectedItem: RenderableObject | null = null
+
     private tileList = [
         ObjectNames.Grass,
         ObjectNames.Player,
@@ -30,7 +36,12 @@ class MapCreator {
 
         this.game = game
 
-        this.addMouseEvent()
+        this.addMouseEvents()
+
+
+        //@ts-ignore
+        window.mapCreator = this
+
 
     }
 
@@ -59,23 +70,39 @@ class MapCreator {
     private exactClicX = ( x: number ) => x + this.game.camera.getX()
     private exactClicY = ( y: number ) => y + this.game.camera.getY()
 
-    private addMouseEvent(){
+    private addMouseEvents(){
 
         const events = this.game.events
         
         events.onMouseMove( e => {
-      
             this.position.x = this.calcMouseX( e.clientX )
             this.position.y = this.calcMouseY( e.clientY )
-
         })
 
         events.onMouseDown( 0, e => {
-            this.leftClick(
-                this.calcMouseX( e.clientX ),
-                this.calcMouseY( e.clientY ),
-                e
-            )
+           
+            const a = this.game.map.filter( x => 
+                    ClickCollision(
+                        this.exactClicX( e.clientX ),
+                        this.exactClicY( e.clientY ), x
+                    )
+                )
+
+            if( a.length === 0 ) {
+                
+                this.selectedItem = null
+                
+                return
+            }
+
+            a.forEach( x => {
+                console.log( `Z: ${x.getZ()}, Name: ${x.getName()}`)
+
+                if( x.getZ() === this.zIndex ) this.selectedItem = x
+
+            })
+
+
         })
 
         events.onMouseDown( 1, e => {
@@ -102,6 +129,17 @@ class MapCreator {
 
         })
 
+        events.onDown( 'arrowup'  , () => this.zIndex += 1 )
+        events.onDown( 'arrowdown', () => this.zIndex -= 1 )
+
+        events.onDown( '1', () => {
+            this.leftClick(
+                this.position.x,
+                this.position.y
+            )
+
+        })
+
     }
 
     private middleClick( x: number, y: number ){
@@ -115,7 +153,7 @@ class MapCreator {
 
     }
 
-    private leftClick( x: number, y: number,  e: MouseEvent ){
+    private leftClick( x: number, y: number ){
 
         const name = this.tileList[ this.current ]
 
@@ -161,6 +199,16 @@ class MapCreator {
         return  this.posX - (this.showItens * this.slotSize + this.showItens * this.margin) / 2
     }
 
+    private renderSelectedItem( ctx:CanvasRenderingContext2D, cam: Camera ){
+
+        ctx.fillStyle = '#ff00ee55'
+
+        const pos = cam.subtract( this.selectedItem! )
+
+        ctx.fillRect( pos.x, pos.y, pos.w, pos.h )
+
+    }
+
     public renderCursor( ctx: CanvasRenderingContext2D, cam: Camera ){
 
         ctx.fillStyle = "#ffffff5f"
@@ -177,11 +225,25 @@ class MapCreator {
             ctx.fillRect(  this.getPos() + x * this.slotSize + x * this.margin, this.posY, this.slotSize, this.slotSize )
 
         }
+        
+        
+        ctx.fillText( `Z: ${this.zIndex}`, this.margin, this.margin )
+        
+        if( this.selectedItem ) {
+
+            this.renderSelectedItem( ctx, cam )
+
+            ctx.fillText( `Name: ${ this.selectedItem.getName() }`, this.margin, this.margin + 15 )
+
+
+        }
 
     }
 
 
 }
+
+
 
 
 export default MapCreator

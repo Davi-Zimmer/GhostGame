@@ -66,6 +66,9 @@ class Entity extends FisicObject {
 
     }
 
+    public getMiddleX = () => this.extractX() + this.extractW() / 2
+    public getMiddleY = () => this.extractY() + this.extractH() / 2
+
 }
 
 export default Entity

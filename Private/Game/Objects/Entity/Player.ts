@@ -1,18 +1,22 @@
 import Game from "../../Game.js"
+import { GameObject } from "../../Utils/GameObject.js"
 import Animation from "../Animation/Animation.js"
 import Camera from "../Basics/Camera.js"
-import SimplePoint from "../Basics/SimpleRect.js"
 import Entity, { EntityInterface } from "./Entity.js"
 
 class Player extends Entity {
 
     private animation = new Animation()
+    public static SpriteIcon = [ 0, 0, 27, 36 ]
 
     constructor( props: EntityInterface ){
 
         super( props )
 
         this.setup()
+
+        this.setGameObjectID( GameObject.Ghost )
+
     }
 
     private addEvents(){
@@ -55,6 +59,7 @@ class Player extends Entity {
         this.mask.x = 10
 
         this.setType( 'Player' )
+
     }
 
     private fillSprites(){

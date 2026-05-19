@@ -6,7 +6,8 @@ import RenderableObject from "./Objects/Basics/Renderable.js"
 import Slime from "./Objects/Entity/Enemy/Slime.js"
 import Entity from "./Objects/Entity/Entity.js"
 import Player from "./Objects/Entity/Player.js"
-import { GetOverlap, IsColliding } from "./Physics/Collision.js"
+import Tile from "./Objects/Tile/Tile.js"
+import { GetOverlap, HasCollisionException, IsColliding } from "./Physics/Collision.js"
 import { clamp } from "./Utils/Clamp.js"
 
 type InputeFunc = ( e: Event ) => void
@@ -43,17 +44,20 @@ class Game {
         return this.Instance
 
     }
-
+    
+    /*
     public static Objects: Record< string, [ number, number, number, number ] > = {
-        Grass     : [ 151, 1,   32, 32 ],
+        Tombstone : [ 118, 100, 32, 32 ],
         Grass_Hole: [ 118, 1,   32, 32 ],
         Sign      : [ 118, 34,  32, 32 ],
         Sign2     : [ 118, 67,  32, 32 ],
-        Tombstone : [ 118, 100, 32, 32 ],
-        Player    : [ 0,   0,   27, 36 ],
+        
+        Grass     : [ 151, 1,   32, 32 ],
+        Ghost     : [ 0,   0,   27, 36 ],
         Slime     : [ 1,   158, 48, 42 ],
     }
 
+    */
 
     /*
     private inputFunctions = {
@@ -275,7 +279,23 @@ class Game {
 
             if( !other.getSolid() ) continue
 
-            if( !IsColliding( e, other ) ) continue
+            if( !e.getCollisionException().has( other.getGameObjectID() ) ){
+
+                if( other instanceof FisicObject || other instanceof Tile ){
+                    
+                    if( !other.getCollisionException().has( e.getGameObjectID() ) ){
+
+                        if( !IsColliding( e, other ) ) continue
+
+                    }
+
+                } else {
+
+                    if( !IsColliding( e, other ) ) continue
+                    
+                }
+
+            }
 
             e.collisionTrigger( other as FisicObject )
 

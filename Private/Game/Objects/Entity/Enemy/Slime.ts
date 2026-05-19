@@ -1,4 +1,5 @@
 import Counter from "../../../Utils/Counter.js"
+import { GameObject } from "../../../Utils/GameObject.js"
 import Animation from "../../Animation/Animation.js"
 import Camera from "../../Basics/Camera.js"
 import Entity, { EntityInterface } from "../Entity.js"
@@ -13,6 +14,7 @@ export interface SlimeInterface extends EntityInterface {
 class Slime extends Entity {
 
     private animation = new Animation()
+    public static SpriteIcon = [ 1, 158, 48, 42 ]
 
     private counter
 
@@ -35,6 +37,8 @@ class Slime extends Entity {
             this.animation.playAnimation()
 
         })
+
+        this.setGameObjectID( GameObject.Slime )
 
     }
 
@@ -59,7 +63,6 @@ class Slime extends Entity {
         ctx.drawImage( spriteSheet, frame[0], frame[1], frame[2], frame[3], pos.x, pos.y, pos.w, pos.h  )
             
     }
-
 
     private jumpCooldown = 0
 

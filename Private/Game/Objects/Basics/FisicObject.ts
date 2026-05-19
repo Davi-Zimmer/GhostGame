@@ -1,12 +1,14 @@
+import { GameObject } from "../../Utils/GameObject.js";
 import NormalizeVector from "../../Utils/Normalize.js";
 import Collidable, { CollidableInterface } from "./Collidable.js";
 import SimplePoint from "./SimpleRect.js";
 import Vec2 from "./Vec2.js";
 
 export interface FisicObjectInterface extends CollidableInterface {
-    mass     ?: number
-    speed    ?: number
-    friction ?: number
+    mass               ?: number
+    speed              ?: number
+    friction           ?: number
+    collisionException ?: GameObject[]
 }
 
 class FisicObject extends Collidable {
@@ -14,6 +16,7 @@ class FisicObject extends Collidable {
     private mass  : number
     private speed : number
     private friction: number
+    private collisionException: Set<GameObject> 
 
     protected mask = new SimplePoint( 0, 0 )
 
@@ -29,6 +32,10 @@ class FisicObject extends Collidable {
 
         this.friction = props.friction ?? .9
 
+        this.collisionException = new Set( props.collisionException ?? [] )
+
+        this.setGameObjectID( GameObject.None )
+
     }
 
     public getMass  = () => this.mass
@@ -36,6 +43,7 @@ class FisicObject extends Collidable {
     public getAcceleration = () => this.acceleration
     public getOrientation  = () => this.orientation
     public getFriction = () => this.friction
+    public getCollisionException = () => this.collisionException
 
     public setMass  = ( mass : number )  => this.mass = mass
     public setSpeed = ( s: number ) => this.speed = s
@@ -65,14 +73,16 @@ class FisicObject extends Collidable {
 
 
     public pushX = ( x: number, bMass: number ) => {
-
         this.mass < bMass ? this.getAcceleration().applyX( this.mass / bMass * x ) : null
-
     }
 
     public pushY = ( y: number, bMass: number ) => {
        this.mass < bMass ? this.getAcceleration().applyY( this.mass / bMass * y ) : null
     }
+
+
+    
+
 
 }
 

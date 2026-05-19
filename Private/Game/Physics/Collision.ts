@@ -1,4 +1,5 @@
 import Rect from "../Objects/Basics/Rect.js"
+import { GameObject } from "../Utils/GameObject.js"
 
 export function IsColliding( a: Rect, b: Rect ){
 
@@ -38,7 +39,6 @@ export function GetOverlap( a: Rect, b: Rect ){
 
 }
 
-
 export function ClickCollision( x: number, y: number, b: Rect ) {
 
     return (
@@ -48,5 +48,22 @@ export function ClickCollision( x: number, y: number, b: Rect ) {
         y < b.extractY() + b.getH() 
 
     )
+
+}
+
+
+export function HasCollisionException( aList: GameObject[], bList: GameObject[] ){
+
+    for( const a of aList ){
+
+        for( const b of bList ){
+
+            if( a === b ) true
+
+        }
+
+    }
+
+    return false
 
 }

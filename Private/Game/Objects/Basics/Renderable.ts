@@ -1,3 +1,4 @@
+import { GameObject } from "../../Utils/GameObject.js"
 import Camera from "./Camera.js"
 import Rect, { RectInterface } from "./Rect.js"
 
@@ -13,8 +14,9 @@ class RenderableObject extends Rect {
 
     private name: string
 
-
     private uniqueSprite: [ number, number, number, number ]
+    private gameObjectID: GameObject = GameObject.None
+
 
     constructor( props : RenderableObjectInterface ){
 
@@ -57,6 +59,9 @@ class RenderableObject extends Rect {
         } as RenderableObjectInterface
 
     }
+
+    public getGameObjectID = () => this.gameObjectID
+    public setGameObjectID = ( id: GameObject ) => this.gameObjectID = id
 
 }
 

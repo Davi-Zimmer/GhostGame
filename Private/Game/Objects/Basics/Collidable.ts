@@ -26,7 +26,7 @@ class Collidable extends RenderableObject {
 
     public collisionTrigger( item: Collidable ){
 
-        console.log( this.getName(), item.getName() )
+        // console.log( this.getName(), item.getName() )
 
     }
 

@@ -1,14 +1,21 @@
+import { GameObject } from "../../Utils/GameObject.js"
 import Camera from "../Basics/Camera.js"
 import Collidable, { CollidableInterface } from "../Basics/Collidable.js"
 
 export interface TileInterface extends CollidableInterface {
-    spriteIndex  ?: number
-
+    spriteIndex        ?: number
+    collisionException ?: GameObject[]
+    gameObject         ?: GameObject
+    
 }
 
 class Tile extends Collidable {
 
+    public static SpriteIcon = [ 184, 34, 32, 32 ]
+
     private spriteIndex: number
+   
+    private collisionException: Set<GameObject> 
 
     constructor( props: TileInterface ){
         
@@ -16,6 +23,7 @@ class Tile extends Collidable {
 
         this.setType( props.type ?? "Tile" )
         this.spriteIndex = props.spriteIndex ?? 0
+        this.collisionException = new Set( props.collisionException ?? [] )
 
     }
 
@@ -38,13 +46,16 @@ class Tile extends Collidable {
         this.renderMe( ctx, cam, spriteSheet)
         
     }
-    
+
 
     public getSpriteIndex = () => this.spriteIndex
+    public getCollisionException = () => this.collisionException
+
+    public setUniqueSpriteList = ( s: number[] ) => this.setUniqueSprite( s[0], s[1], s[2], s[3] )
 
     public static ToJson( t: Tile ){
 
-        const a = {
+        return {
             x: t.getX(),
             y: t.getY(),
             z: t.getZ(),
@@ -54,13 +65,10 @@ class Tile extends Collidable {
             name: t.getName(),
             collision: t.useCollision(),
             solid: t.getSolid(),
-            spriteIndex: t.getSpriteIndex()
+            spriteIndex: t.getSpriteIndex(),
+            gameObject: t.getGameObjectID()
 
         } as TileInterface
-
-        console.log( a )
-
-        return a 
 
     }
 

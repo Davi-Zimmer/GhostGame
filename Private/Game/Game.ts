@@ -3,9 +3,11 @@ import MapCreator from "./Map Creator/Map Creator.js"
 import Camera from "./Objects/Basics/Camera.js"
 import FisicObject from "./Objects/Basics/FisicObject.js"
 import RenderableObject from "./Objects/Basics/Renderable.js"
+import Slime from "./Objects/Entity/Enemy/Slime.js"
 import Entity from "./Objects/Entity/Entity.js"
 import Player from "./Objects/Entity/Player.js"
-import { GetOverlap, IsColliding } from "./Physics/Collision.js"
+import Tile from "./Objects/Tile/Tile.js"
+import { GetOverlap, HasCollisionException, IsColliding } from "./Physics/Collision.js"
 import { clamp } from "./Utils/Clamp.js"
 
 type InputeFunc = ( e: Event ) => void
@@ -18,8 +20,6 @@ interface InputFunctionInterface {
     mouseDownMap : InputeFunc[]
 
 }
-
-
 
 export enum ObjectNames {
     Grass  = "Grass",
@@ -35,6 +35,8 @@ class Game {
 
     private static Instance: Game
 
+    private tileSize = 100
+
     public static GetInstance(){
         
         if( !this.Instance ) this.Instance = new Game()
@@ -42,14 +44,20 @@ class Game {
         return this.Instance
 
     }
-
+    
+    /*
     public static Objects: Record< string, [ number, number, number, number ] > = {
-        Grass     : [ 151, 1,  32, 32 ],
-        Grass_Hole: [ 118, 1,  32, 32 ],
-        Sign      : [ 118, 34, 32, 32 ],
-        Sign2     : [ 118, 67, 32, 32 ]
+        Tombstone : [ 118, 100, 32, 32 ],
+        Grass_Hole: [ 118, 1,   32, 32 ],
+        Sign      : [ 118, 34,  32, 32 ],
+        Sign2     : [ 118, 67,  32, 32 ],
+        
+        Grass     : [ 151, 1,   32, 32 ],
+        Ghost     : [ 0,   0,   27, 36 ],
+        Slime     : [ 1,   158, 48, 42 ],
     }
 
+    */
 
     /*
     private inputFunctions = {
@@ -122,7 +130,7 @@ class Game {
         //@ts-ignore
         window.game = this
 
-        this.mapCreator = new MapCreator( this )
+        this.mapCreator = new MapCreator( this, this.tileSize )
 
     }
 
@@ -229,52 +237,75 @@ class Game {
 
     }
 
-    private collisionPush( horizontal: boolean, overlap: { x: number, y: number }, other: RenderableObject, e: FisicObject ){
+    private collisionPush( horizontal: boolean, overlap: { x: number, y: number }, other: RenderableObject, e: RenderableObject ){
+
+        if( e instanceof FisicObject ){
+
+            if( other instanceof Entity ){
+
+                if( horizontal ){
         
-        if( other instanceof Entity  ){
+                    other.applyX( -overlap.x )
+                    other.getAcceleration().multiplyX( -.5 )
 
-            if( horizontal ){
-    
-                other.applyX( -overlap.x )
-    
-                other.getAcceleration().multiplyX( -.5 )
-    
-                e.pushX( Math.sign( overlap.x ), other.getMass() )
-    
-    
-            } else {
-                other.applyY( -overlap.y ) 
-    
-                other.getAcceleration().multiplyY( -.5 )
-    
-                e.pushY( Math.sign( overlap.y ), other.getMass() )
-    
+                    if( e.getFixed() ) return
+                    e.pushX( Math.sign( overlap.x ), other.getMass(), other.getKnockback() )
+
+                } else {
+
+                    other.applyY( -overlap.y )
+                    other.getAcceleration().multiplyY( -.5 )
+
+                    if( e.getFixed() ) return
+                    e.pushY( Math.sign( overlap.y ), other.getMass(), other.getKnockback() )
+        
+                }
+
+                return
+
             }
-
-            return
 
         }
 
         if( horizontal ) other.applyX( -overlap.x )
-        else other.applyY( -overlap.y ) 
-
+        else             other.applyY( -overlap.y )
 
     }
 
-    private collision( e: FisicObject ){
+    private collision( e: RenderableObject ){
 
         for( const other of this.map ){
 
             if( other === e ) continue
 
-            if( !other.getSolid() ) continue
+            if( !this.camera.isOutside( other, 2 * this.tileSize )  ) continue
 
-            if( !IsColliding( e, other ) ) continue
+            if( !other.getSolid() || !e.getSolid() ) continue
 
-            e.collisionTrigger( other as FisicObject )
+            if( e instanceof FisicObject || e instanceof Tile ){
+
+                if( other instanceof FisicObject || other instanceof Tile ){
+
+                    if(
+                        e.getCollisionException().has( other.getGameObjectID() ) ||
+                        other.getCollisionException().has( e.getGameObjectID() )
+                    
+                    ) continue
+
+                    if( !IsColliding( e, other ) ) continue
+
+                }
+
+                e.collisionTrigger( other as FisicObject )
+
+            } else {
+
+                if( !IsColliding( e, other ) ) continue
+
+            }
 
             const overlap = GetOverlap( e, other )
-
+            
             if( !overlap ) continue
             
             const horizontal = Math.abs( overlap.x ) < Math.abs( overlap.y )
@@ -300,8 +331,10 @@ class Game {
 
         for( const n of this.map ){
 
-            if( n instanceof FisicObject && n.useCollision() ) this.collision( n )
+            if( !this.camera.isOutside( n, 2 * this.tileSize )  ) continue
 
+            this.collision( n )
+                
             n.tick()
 
             n.render( ctx, this.camera, this.spriteSheet )
@@ -313,6 +346,13 @@ class Game {
     }
 
     public getSpriteSheet = () => this.spriteSheet
+
+    public extractSolidTiles(){
+        
+        return this.map.filter( i => i.getSolid() && i.getType() === "Tile" )
+
+    }
+
 }
 
 

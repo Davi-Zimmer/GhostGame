@@ -1,11 +1,14 @@
+import { GameObject } from "../../Utils/GameObject.js";
 import NormalizeVector from "../../Utils/Normalize.js";
 import Collidable, { CollidableInterface } from "./Collidable.js";
+import SimplePoint from "./SimpleRect.js";
 import Vec2 from "./Vec2.js";
 
 export interface FisicObjectInterface extends CollidableInterface {
-    mass     ?: number
-    speed    ?: number
-    friction ?: number
+    mass               ?: number
+    speed              ?: number
+    friction           ?: number
+    collisionException ?: GameObject[]
 }
 
 class FisicObject extends Collidable {
@@ -13,6 +16,11 @@ class FisicObject extends Collidable {
     private mass  : number
     private speed : number
     private friction: number
+    private collisionException: Set< GameObject >
+    private knockback: number = 1
+    private fixed : boolean = false
+
+    protected mask = new SimplePoint( 0, 0 )
 
     protected acceleration: Vec2 = new Vec2( 0, 0 ) // [ 1000.5, 50 ]
     protected orientation : Vec2 = new Vec2( 0, 0 ) // [ -1, 1 ]
@@ -26,6 +34,10 @@ class FisicObject extends Collidable {
 
         this.friction = props.friction ?? .9
 
+        this.collisionException = new Set( props.collisionException ?? [] )
+
+        this.setGameObjectID( GameObject.None )
+
     }
 
     public getMass  = () => this.mass
@@ -33,10 +45,15 @@ class FisicObject extends Collidable {
     public getAcceleration = () => this.acceleration
     public getOrientation  = () => this.orientation
     public getFriction = () => this.friction
+    public getCollisionException = () => this.collisionException
+    public getKnockback = () => this.knockback
+    public getFixed = () => this.fixed 
 
     public setMass  = ( mass : number )  => this.mass = mass
     public setSpeed = ( s: number ) => this.speed = s
     public setFriction = ( f: number) => this.friction = f
+    public setKnockback = ( n: number ) => this.knockback = n
+    public setFixed = ( b: boolean ) => this.fixed = b 
 
     public applyMass = ( mass : number )  => this.mass += mass
 
@@ -54,18 +71,40 @@ class FisicObject extends Collidable {
         this.acceleration.multiply( .9, .9 )
     }
 
-    public extractX = () => this.getX() + this.acceleration.getX() + this.orientation.getX() * this.getSpeed()
-    public extractY = () => this.getY() + this.acceleration.getY() + this.orientation.getY() * this.getSpeed()
+    public extractX = () => (this.getX() + this.mask.x ) + this.acceleration.getX() + this.orientation.getX() * this.getSpeed()
+    public extractY = () => (this.getY() + this.mask.y ) + this.acceleration.getY() + this.orientation.getY() * this.getSpeed()
 
-    public pushX = ( x: number, bMass: number ) => {
+    public extractW = () => this.getW() - this.mask.x * 2
+    public extractH = () => this.getH() - this.mask.y * 2
 
-        this.mass < bMass ? this.getAcceleration().applyX( this.mass / bMass * x ) : null
+
+    public pushX = ( direction: number, otherMass: number, knockback: number ) => {
+        
+        const inverseMass      = 1 / this.getMass()
+        const otherInverseMass = 1 / otherMass
+
+        if ( inverseMass === 0 ) return
+
+        const force = knockback * ( inverseMass / ( inverseMass + otherInverseMass ) )
+
+        this.acceleration.applyX( direction * force )
 
     }
 
-    public pushY = ( y: number, bMass: number ) => {
-       this.mass < bMass ? this.getAcceleration().applyY( this.mass / bMass * y ) : null
+    public pushY = ( direction: number, otherMass: number, knockback: number ) => {
+
+        const inverseMass      = 1 / this.getMass()
+        const otherInverseMass = 1 / otherMass
+
+        if( inverseMass === 0 ) return
+
+        const force = knockback * ( inverseMass / ( inverseMass + otherInverseMass ) )
+
+        this.acceleration.applyY( direction * force )
+
     }
+
+
 
 }
 

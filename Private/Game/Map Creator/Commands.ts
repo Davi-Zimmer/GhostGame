@@ -25,7 +25,7 @@ class Commands {
         for( let x = startX; x <= endX; x += this.mapCreator.getTileSize() ) {
 
             for( let y = startY; y <= endY; y += this.mapCreator.getTileSize() ) {
-
+                /*
                 this.mapCreator.addToMap(
                     this.mapCreator.loadTile({
                         x, y,
@@ -37,11 +37,13 @@ class Commands {
                     
                 )
 
+                */
             }
 
         }
 
     }
+
 
 }
 

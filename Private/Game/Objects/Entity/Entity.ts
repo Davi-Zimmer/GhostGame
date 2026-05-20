@@ -1,8 +1,11 @@
+import { GameObject } from "../../Utils/GameObject.js";
 import Camera from "../Basics/Camera.js";
 import FisicObject, { FisicObjectInterface } from "../Basics/FisicObject.js";
+import SimplePoint from "../Basics/SimpleRect.js";
 
 export interface EntityInterface extends FisicObjectInterface {
-    color ?: string
+    color      ?: string
+    gameObject ?: GameObject
 
 }
 
@@ -11,10 +14,10 @@ export enum EntityNames {
     Player  = "Player"
 }
 
-
 class Entity extends FisicObject {
 
     private color: string
+    public static SpriteIcon = [ 184, 34, 32, 32 ]
 
     constructor( props : EntityInterface ){
 
@@ -60,10 +63,16 @@ class Entity extends FisicObject {
             speed: e.getSpeed(),
             friction: e.getFriction(),
             color: e.color,
-            mass: e.getMass()
+            mass: e.getMass(),
+            gameObject: e.getGameObjectID()
         } as EntityInterface
 
     }
+
+    public getMiddleX = () => this.extractX() + this.extractW() / 2
+    public getMiddleY = () => this.extractY() + this.extractH() / 2
+
+    
 
 }
 

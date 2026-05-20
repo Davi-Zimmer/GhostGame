@@ -2,7 +2,7 @@ class Animation {
 
     private frame = 0
     private animationRuning = false
-    private animationName = "down"
+    private animationName: string = ""
 
     private animationDelay = 0
 
@@ -18,15 +18,17 @@ class Animation {
 
     }
 
-    public forSprites( x: number, y: number, w: number, h: number, frames: number, animationName: string, franeDelay: number ){
+    public forSprites( x: number, y: number, w: number, h: number, frames: number, animationName: string, frameDelay: number ){
 
         this.sprites[ animationName ] = []
 
         for( let i = 0; i < frames; i++ ){
 
-            this.sprites[ animationName ].push( [ x + i * w + i * 2, y, w, h, franeDelay ] )
+            this.sprites[ animationName ].push( [ x + i * w + i * 2, y, w, h, frameDelay ] )
 
         }
+
+        if( this.animationName === "" ) this.animationName = animationName
 
     }
 
@@ -36,7 +38,11 @@ class Animation {
 
         if( this.frame > this.sprites[ this.animationName ].length -1 ){
             this.frame = 0
+            
+            return true 
         }
+
+        return false
 
     }
 
@@ -47,8 +53,11 @@ class Animation {
         if( this.animationDelay > this.sprites[ this.animationName ][this.frame][ 4 ] ){
             this.animationDelay = 0
 
-            this.nextFrame()
+            return this.nextFrame()
+
         }
+
+        return false
 
     }
 
@@ -61,6 +70,8 @@ class Animation {
     public isRunning = () => this.animationRuning
 
     public getFrame = () => this.frame
+
+    public setAnimationRunning = ( b: boolean ) => this.animationRuning = b
 
 
 }

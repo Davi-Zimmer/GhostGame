@@ -27,7 +27,6 @@ class EventManager {
         canvas.addEventListener('wheel'      , e => this.mouseWheelTrigger( e ))
 
     }
-    
 
     private keyMap: Record< string, KeyHandlersInterface > = {}
     

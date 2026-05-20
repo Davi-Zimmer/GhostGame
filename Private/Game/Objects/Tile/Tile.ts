@@ -3,13 +3,15 @@ import Camera from "../Basics/Camera.js"
 import Collidable, { CollidableInterface } from "../Basics/Collidable.js"
 
 export interface TileInterface extends CollidableInterface {
-    spriteIndex  ?: number
+    spriteIndex        ?: number
     collisionException ?: GameObject[]
-    gameObject ?: GameObject
-
+    gameObject         ?: GameObject
+    
 }
 
 class Tile extends Collidable {
+
+    public static SpriteIcon = [ 184, 34, 32, 32 ]
 
     private spriteIndex: number
    
@@ -45,10 +47,12 @@ class Tile extends Collidable {
         
     }
 
+
     public getSpriteIndex = () => this.spriteIndex
     public getCollisionException = () => this.collisionException
-    public static SpriteIcon = [ 184, 34, 32, 32 ]
-    
+
+    public setUniqueSpriteList = ( s: number[] ) => this.setUniqueSprite( s[0], s[1], s[2], s[3] )
+
     public static ToJson( t: Tile ){
 
         return {

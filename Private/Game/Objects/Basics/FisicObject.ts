@@ -16,7 +16,9 @@ class FisicObject extends Collidable {
     private mass  : number
     private speed : number
     private friction: number
-    private collisionException: Set<GameObject> 
+    private collisionException: Set< GameObject >
+    private knockback: number = 1
+    private fixed : boolean = false
 
     protected mask = new SimplePoint( 0, 0 )
 
@@ -44,10 +46,14 @@ class FisicObject extends Collidable {
     public getOrientation  = () => this.orientation
     public getFriction = () => this.friction
     public getCollisionException = () => this.collisionException
+    public getKnockback = () => this.knockback
+    public getFixed = () => this.fixed 
 
     public setMass  = ( mass : number )  => this.mass = mass
     public setSpeed = ( s: number ) => this.speed = s
     public setFriction = ( f: number) => this.friction = f
+    public setKnockback = ( n: number ) => this.knockback = n
+    public setFixed = ( b: boolean ) => this.fixed = b 
 
     public applyMass = ( mass : number )  => this.mass += mass
 
@@ -72,16 +78,32 @@ class FisicObject extends Collidable {
     public extractH = () => this.getH() - this.mask.y * 2
 
 
-    public pushX = ( x: number, bMass: number ) => {
-        this.mass < bMass ? this.getAcceleration().applyX( this.mass / bMass * x ) : null
+    public pushX = ( direction: number, otherMass: number, knockback: number ) => {
+        
+        const inverseMass      = 1 / this.getMass()
+        const otherInverseMass = 1 / otherMass
+
+        if ( inverseMass === 0 ) return
+
+        const force = knockback * ( inverseMass / ( inverseMass + otherInverseMass ) )
+
+        this.acceleration.applyX( direction * force )
+
     }
 
-    public pushY = ( y: number, bMass: number ) => {
-       this.mass < bMass ? this.getAcceleration().applyY( this.mass / bMass * y ) : null
+    public pushY = ( direction: number, otherMass: number, knockback: number ) => {
+
+        const inverseMass      = 1 / this.getMass()
+        const otherInverseMass = 1 / otherMass
+
+        if( inverseMass === 0 ) return
+
+        const force = knockback * ( inverseMass / ( inverseMass + otherInverseMass ) )
+
+        this.acceleration.applyY( direction * force )
+
     }
 
-
-    
 
 
 }

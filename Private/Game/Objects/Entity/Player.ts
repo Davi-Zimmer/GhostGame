@@ -7,6 +7,7 @@ import Entity, { EntityInterface } from "./Entity.js"
 class Player extends Entity {
 
     private animation = new Animation()
+
     public static SpriteIcon = [ 0, 0, 27, 36 ]
 
     constructor( props: EntityInterface ){
@@ -47,6 +48,8 @@ class Player extends Entity {
         this.setMass( 6 )
 
         this.fillSprites()
+
+        this.setSolid( true )
 
         const scale = 3
         

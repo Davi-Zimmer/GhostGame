@@ -7,7 +7,7 @@ import Player from "../Player.js"
 
 export interface SlimeInterface extends EntityInterface {
     
-    quantity: number
+    quantity?: number
 
 }
 
@@ -26,19 +26,31 @@ class Slime extends Entity {
 
         super( props )
 
-        this.setSpeed( 4.5 )
-
-        this.fillSprites()
-
-        this.animation.playAnimation()
-
         this.counter = new Counter( 20, () => {
 
             this.animation.playAnimation()
 
         })
 
+        this.setup()
+    }
+
+    private setup(){
+
+        this.setSpeed( 4.5 )
+
+        this.fillSprites()
+
+        this.animation.playAnimation()
+
         this.setGameObjectID( GameObject.Slime )
+
+
+        this.setSolid( true )
+        this.setCollision( true )
+        this.setMass( 10 )
+
+        // this.setKnockback( 50 )
 
     }
 
@@ -85,7 +97,6 @@ class Slime extends Entity {
     public tick(){
         
         this.updatePosition()
-
         
         if( this.jumpCooldown > 50 + Math.random() * 20 ){
             this.jumpCooldown = 0

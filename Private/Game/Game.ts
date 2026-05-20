@@ -237,70 +237,75 @@ class Game {
 
     }
 
-    private collisionPush( horizontal: boolean, overlap: { x: number, y: number }, other: RenderableObject, e: FisicObject ){
+    private collisionPush( horizontal: boolean, overlap: { x: number, y: number }, other: RenderableObject, e: RenderableObject ){
+
+        if( e instanceof FisicObject ){
+
+            if( other instanceof Entity ){
+
+                if( horizontal ){
         
-        if( other instanceof Entity  ){
+                    other.applyX( -overlap.x )
+                    other.getAcceleration().multiplyX( -.5 )
 
-            if( horizontal ){
-    
-                other.applyX( -overlap.x )
-    
-                other.getAcceleration().multiplyX( -.5 )
-    
-                e.pushX( Math.sign( overlap.x ), other.getMass() )
-    
-    
-            } else {
-                other.applyY( -overlap.y ) 
-    
-                other.getAcceleration().multiplyY( -.5 )
-    
-                e.pushY( Math.sign( overlap.y ), other.getMass() )
-    
+                    if( e.getFixed() ) return
+                    e.pushX( Math.sign( overlap.x ), other.getMass(), other.getKnockback() )
+
+                } else {
+
+                    other.applyY( -overlap.y )
+                    other.getAcceleration().multiplyY( -.5 )
+
+                    if( e.getFixed() ) return
+                    e.pushY( Math.sign( overlap.y ), other.getMass(), other.getKnockback() )
+        
+                }
+
+                return
+
             }
-
-            return
 
         }
 
         if( horizontal ) other.applyX( -overlap.x )
-        else other.applyY( -overlap.y ) 
-
+        else             other.applyY( -overlap.y )
 
     }
 
-    private collision( e: FisicObject ){
+    private collision( e: RenderableObject ){
 
         for( const other of this.map ){
 
-            if( !this.camera.isOutside( other, 2 * this.tileSize )  ) continue
-
             if( other === e ) continue
 
-            if( !other.getSolid() ) continue
+            if( !this.camera.isOutside( other, 2 * this.tileSize )  ) continue
 
-            if( !e.getCollisionException().has( other.getGameObjectID() ) ){
+            if( !other.getSolid() || !e.getSolid() ) continue
+
+            if( e instanceof FisicObject || e instanceof Tile ){
 
                 if( other instanceof FisicObject || other instanceof Tile ){
+
+                    if(
+                        e.getCollisionException().has( other.getGameObjectID() ) ||
+                        other.getCollisionException().has( e.getGameObjectID() )
                     
-                    if( !other.getCollisionException().has( e.getGameObjectID() ) ){
-
-                        if( !IsColliding( e, other ) ) continue
-
-                    }
-
-                } else {
+                    ) continue
 
                     if( !IsColliding( e, other ) ) continue
-                    
+
                 }
+
+                e.collisionTrigger( other as FisicObject )
+
+            } else {
+
+                if( !IsColliding( e, other ) ) continue
 
             }
 
-            e.collisionTrigger( other as FisicObject )
-
             const overlap = GetOverlap( e, other )
-
+            
             if( !overlap ) continue
             
             const horizontal = Math.abs( overlap.x ) < Math.abs( overlap.y )
@@ -328,8 +333,8 @@ class Game {
 
             if( !this.camera.isOutside( n, 2 * this.tileSize )  ) continue
 
-            if( n instanceof FisicObject && n.useCollision() ) this.collision( n )
-
+            this.collision( n )
+                
             n.tick()
 
             n.render( ctx, this.camera, this.spriteSheet )

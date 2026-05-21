@@ -7,5 +7,6 @@ export enum GameObject {
     GenericTile       = 3,
     Grass             = 4,
     StoneWall         = 5,
-    CrachedStoneWall  = 7
+    CrachedStoneWall  = 7,
+    GenericItem       = 8
 }

@@ -32,12 +32,21 @@ class RenderableObject extends Rect {
 
     public tick(){}
 
-    public render( ctx: CanvasRenderingContext2D, cam: Camera, spriteSheet: HTMLImageElement ){ }
+    public render( ctx: CanvasRenderingContext2D, cam: Camera, spriteSheet: HTMLImageElement ){
+
+        const s = this.getUniqueSprite()
+
+        const pos = cam.subtract( this )
+
+        ctx.drawImage( spriteSheet, s[0], s[1], s[2], s[3], pos.x, pos.y, pos.w, pos.h )
+
+    }
 
     public getName = () => this.name 
     public setName = ( n: string ) => this.name = n 
 
     public setUniqueSprite = ( x: number, y: number, w: number, h: number ) => this.uniqueSprite = [ x, y, w, h ] 
+    public setUniqueSpriteList = ( s: number[] ) => this.setUniqueSprite( s[0], s[1], s[2], s[3] )
 
     public getUniqueSprite = () => this.uniqueSprite
 

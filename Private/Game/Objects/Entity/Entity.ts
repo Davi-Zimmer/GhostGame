@@ -1,6 +1,7 @@
 import { GameObject } from "../../Utils/GameObject.js";
 import Camera from "../Basics/Camera.js";
 import FisicObject, { FisicObjectInterface } from "../Basics/FisicObject.js";
+import Point2d from "../Basics/Point2d.js";
 import SimplePoint from "../Basics/SimpleRect.js";
 
 export interface EntityInterface extends FisicObjectInterface {
@@ -18,6 +19,8 @@ class Entity extends FisicObject {
 
     private color: string
     public static SpriteIcon = [ 184, 34, 32, 32 ]
+
+    private lookingAngle = 180
 
     constructor( props : EntityInterface ){
 
@@ -71,6 +74,9 @@ class Entity extends FisicObject {
 
     public getMiddleX = () => this.extractX() + this.extractW() / 2
     public getMiddleY = () => this.extractY() + this.extractH() / 2
+
+    public setLooking = ( angle: number ) => this.lookingAngle = angle
+    public getLooking = () => this.lookingAngle
 
     
 

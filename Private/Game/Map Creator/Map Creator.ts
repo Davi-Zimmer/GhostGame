@@ -4,6 +4,7 @@ import Rect from "../Objects/Basics/Rect.js";
 import RenderableObject from "../Objects/Basics/Renderable.js";
 import Slime, { SlimeInterface } from "../Objects/Entity/Enemy/Slime.js";
 import Entity, { EntityInterface } from "../Objects/Entity/Entity.js";
+import Item from "../Objects/Entity/Items/Item.js";
 import Player from "../Objects/Entity/Player.js";
 import CrackedStoneWall from "../Objects/Tile/CrackedStoneWall.js";
 import Grass from "../Objects/Tile/Grass.js";
@@ -55,7 +56,8 @@ class MapCreator {
         [ GameObject.GenericTile ]      : Tile,
         [ GameObject.Grass ]            : Grass,
         [ GameObject.StoneWall ]        : StoneWall,
-        [ GameObject.CrachedStoneWall ] : CrackedStoneWall
+        [ GameObject.CrachedStoneWall ] : CrackedStoneWall,
+        [ GameObject.GenericItem ]      : Item
     }
 
     private tileList = [
@@ -130,6 +132,7 @@ class MapCreator {
             case GameObject.CrachedStoneWall : return new CrackedStoneWall( obj )
             case GameObject.StoneWall        : return new StoneWall( obj )
             case GameObject.Entity           : return new Entity( obj )
+            case GameObject.GenericItem      : return new Item( obj )
             
             default: {
 
@@ -301,6 +304,7 @@ class MapCreator {
             GameObject.CrachedStoneWall,
             GameObject.Grass,
             GameObject.StoneWall,
+            GameObject.GenericItem
         ]
 
         const COLUNAS = 10

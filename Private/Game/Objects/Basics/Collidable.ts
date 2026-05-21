@@ -1,4 +1,4 @@
-import RenderableObject, { RenderableObjectInterface } from "./Renderable.js";
+import RenderableObject, { RenderableObjectInterface } from "./Renderable.js"
 
 export interface CollidableInterface extends RenderableObjectInterface {
     solid?: boolean
@@ -24,10 +24,11 @@ class Collidable extends RenderableObject {
 
     }
 
-    public collisionTrigger( item: Collidable ){
+    public collisionTrigger( item: Collidable ): boolean{
 
         // console.log( this.getName(), item.getName() )
 
+        return false
     }
 
     public getSolid = () => this.solid

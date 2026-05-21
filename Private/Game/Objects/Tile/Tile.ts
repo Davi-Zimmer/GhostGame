@@ -51,8 +51,6 @@ class Tile extends Collidable {
     public getSpriteIndex = () => this.spriteIndex
     public getCollisionException = () => this.collisionException
 
-    public setUniqueSpriteList = ( s: number[] ) => this.setUniqueSprite( s[0], s[1], s[2], s[3] )
-
     public static ToJson( t: Tile ){
 
         return {

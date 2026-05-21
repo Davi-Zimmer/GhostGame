@@ -20,15 +20,20 @@ class Item extends Collidable {
     }
 
     private centralize(){
-        return
-
+        
         const sprite = Item.SpriteIcon
 
-        const newX = ( this.getX() + this.getW() / 2 ) - sprite[ 2 ] / 2
-        const newY = ( this.getY() + this.getH() / 2 ) - sprite[ 3 ] / 2
+        const width  = sprite[ 2 ]
+        const height = sprite[ 3 ]
 
+        const newX = ( this.getX() + this.getW() / 2 ) - width  / 2
+        const newY = ( this.getY() + this.getH() / 2 ) - height / 2
+        
         this.setX( newX )
-        this.setX( newY )
+        this.setY( newY )
+
+        this.setW( width )
+        this.setH( height )
 
     }
 
@@ -61,8 +66,6 @@ class Item extends Collidable {
 
     }
 
-
 }
-
 
 export default Item 

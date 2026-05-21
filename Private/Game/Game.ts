@@ -7,6 +7,7 @@ import RenderableObject from "./Objects/Basics/Renderable.js"
 import Slime from "./Objects/Entity/Enemy/Slime.js"
 import Entity from "./Objects/Entity/Entity.js"
 import Player from "./Objects/Entity/Player.js"
+import Projectile from "./Objects/Entity/Projectile/Projectile.js"
 import Tile from "./Objects/Tile/Tile.js"
 import { GetOverlap, HasCollisionException, IsColliding } from "./Physics/Collision.js"
 import { clamp } from "./Utils/Clamp.js"
@@ -169,6 +170,7 @@ class Game {
                 color: "blue",
                 solid: true,
                 name: "preie",
+                game: this
 
             })
         
@@ -247,16 +249,32 @@ class Game {
             if( other instanceof Entity ){
 
                 if( horizontal ){
-        
-                    other.applyX( -overlap.x )
+                    
+                    if( e.getCanOverlapOthers() ) other.applyX( -overlap.x ); else {
+                        
+                        if( e.getCanPushOthers() ){
+                            other.pushX( Math.sign( overlap.x ), e.getMass(), e.getKnockback() )
+                        }
+
+                    }
+
                     other.getAcceleration().multiplyX( -.5 )
 
                     if( e.getFixed() ) return
                     e.pushX( Math.sign( overlap.x ), other.getMass(), other.getKnockback() )
 
                 } else {
+                    
+                    if( e.getCanOverlapOthers() ) other.applyY( -overlap.y ); else {
 
-                    other.applyY( -overlap.y )
+                        if( e. getCanPushOthers() ){
+
+                            other.pushY( Math.sign( overlap.y ), e.getMass(), e.getKnockback() )
+                        
+                        }
+
+                    }
+
                     other.getAcceleration().multiplyY( -.5 )
 
                     if( e.getFixed() ) return
@@ -270,20 +288,30 @@ class Game {
 
         }
 
-        if( horizontal ) other.applyX( -overlap.x )
-        else             other.applyY( -overlap.y )
+        if( e instanceof Collidable ){
+
+            if( horizontal ) {
+                if( e.getCanOverlapOthers() ) other.applyX( -overlap.x )
+                return
+            }
+            
+            if( e.getCanOverlapOthers() ) other.applyY( -overlap.y )
+        
+            return
+        }
+
 
     }
 
-    private executeCollisionTrigger( e: Collidable, other: RenderableObject ){
-
-        const remove = e.collisionTrigger( other as FisicObject )
+    private executeCollisionTrigger( e: Collidable, other: Collidable ){
+        
+        const remove = other.collisionTrigger( e as FisicObject )
 
         if( !remove ) return
 
         this.tickExecutionStack.push( () => {
 
-            this.map = this.map.filter( i => i !== e )
+            this.map = this.map.filter( i => i !== other )
 
         })
 
@@ -325,13 +353,11 @@ class Game {
             
             if( !overlap ) continue
 
-
             if( e instanceof Collidable ) {
-
-                if( this.executeCollisionTrigger( e, other ) ) return
+            
+                if( this.executeCollisionTrigger( e, other as Collidable ) ) return
 
             }
-
             
             const horizontal = Math.abs( overlap.x ) < Math.abs( overlap.y )
             
@@ -395,6 +421,13 @@ class Game {
         return this.map.filter( i => i.getSolid() && i.getType() === "Tile" )
 
     }
+
+    public addTickExecutionStack( func: () => void){
+
+        this.tickExecutionStack.push( func )
+
+    }
+    
 
 }
 

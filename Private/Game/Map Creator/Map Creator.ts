@@ -119,7 +119,8 @@ class MapCreator {
             y: i.y,
             z: this.zIndex,
             w: this.tileSize,
-            h: this.tileSize
+            h: this.tileSize,
+            game: this.game
         }
 
         switch( i.gameObject ){

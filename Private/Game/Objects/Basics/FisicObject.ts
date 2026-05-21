@@ -37,6 +37,7 @@ class FisicObject extends Collidable {
 
         this.collisionException = new Set( props.collisionException ?? [] )
 
+
         this.setGameObjectID( GameObject.None )
 
         if( props.acceleration ){
@@ -53,6 +54,7 @@ class FisicObject extends Collidable {
     public getCollisionException = () => this.collisionException
     public getKnockback = () => this.knockback
     public getFixed = () => this.fixed
+    
 
     public setMass  = ( mass : number )  => this.mass = mass
     public setSpeed = ( s: number ) => this.speed = s
@@ -76,8 +78,8 @@ class FisicObject extends Collidable {
         this.acceleration.multiply( this.friction, this.friction )
     }
 
-    public extractX = () => (this.getX() + this.mask.x ) + this.acceleration.getX() + this.orientation.getX() * this.getSpeed()
-    public extractY = () => (this.getY() + this.mask.y ) + this.acceleration.getY() + this.orientation.getY() * this.getSpeed()
+    public extractX = () => ( this.getX() + this.mask.x ) + this.acceleration.getX() + this.orientation.getX() * this.getSpeed()
+    public extractY = () => ( this.getY() + this.mask.y ) + this.acceleration.getY() + this.orientation.getY() * this.getSpeed()
 
     public extractW = () => this.getW() - this.mask.x * 2
     public extractH = () => this.getH() - this.mask.y * 2

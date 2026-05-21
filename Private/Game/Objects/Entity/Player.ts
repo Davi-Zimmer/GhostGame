@@ -7,6 +7,13 @@ import Entity, { EntityInterface } from "./Entity.js"
 import Item from "./Items/Item.js"
 import Projectile from "./Projectile/Projectile.js"
 
+
+interface PlayerInterface extends EntityInterface {
+    game: Game
+
+}
+
+
 class Player extends Entity {
 
     private animation = new Animation()
@@ -15,9 +22,13 @@ class Player extends Entity {
 
     private inventory: Item | null = null
 
-    constructor( props: EntityInterface ){
+    private game: Game
+
+    constructor( props: PlayerInterface ){
 
         super( props )
+
+        this.game = props.game
 
         this.setup()
 
@@ -102,15 +113,22 @@ class Player extends Entity {
     }
 
     private attack = ( e: MouseEvent ) => {
-        
-        const dx = e.clientX - this.getMiddleX()
-        const dy = e.clientY - this.getMiddleY()
+       
+        const cam  = this.game.camera 
 
-        const lenght = Math.sqrt( dx * dx + dy * dy )
+        const screenX = this.getX() - cam.getX()
+        const screenY = this.getY() - cam.getY()
 
+        const centerX = screenX + this.getW() / 2
+        const centerY = screenY + this.getH() / 2
+
+        const dx = e.clientX - centerX
+        const dy = e.clientY - centerY
+
+        const lenght = Math.hypot( dx, dy )
 
         const dir = new SimplePoint( dx / lenght, dy / lenght )
-
+        
         const projectile = new Projectile({
 
             x: this.getMiddleX(),
@@ -119,9 +137,17 @@ class Player extends Entity {
             h: 10,
             z: 100,
             sender: this,
-            acceleration: [ dir.x, dir.y  ]
+            speed: 20,
+            acceleration: [ dir.x, dir.y ]
             
         })
+
+        this.game.addTickExecutionStack( () => {
+            
+            this.game.addToMap( projectile )
+
+        })
+
 
         // botar no game
         

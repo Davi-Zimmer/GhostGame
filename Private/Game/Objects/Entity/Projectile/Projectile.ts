@@ -20,26 +20,37 @@ class Projectile extends FisicObject {
 
         this.getCollisionException().add( props.sender.getGameObjectID() )
 
+        this.setMass( 1 )
+
+        this.setCanOverlapOthers( false )
+
+        this.setCanPushOthers( false )
+
     }
 
     public collisionTrigger( item: Collidable ): boolean {
         
+        this.acceleration.setVector( 0, 0 )
+
         if( item instanceof Entity ){
 
-            /// damage
             console.log( 'damage' )
 
             return true
         }
 
-        return false
+        return true
 
     }
 
 
     public tick(){
 
-        this.updatePosition()
+        this.setX( this.getX() + this.acceleration.getX() * this.getSpeed() )
+        this.setY( this.getY() + this.acceleration.getY() * this.getSpeed() )
+
+        // this.updatePosition()
+        // console.log( this.getSpeed() )
 
     }
 

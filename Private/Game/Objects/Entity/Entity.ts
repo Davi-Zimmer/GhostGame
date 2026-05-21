@@ -1,3 +1,4 @@
+import Game from "../../Game.js";
 import { GameObject } from "../../Utils/GameObject.js";
 import Camera from "../Basics/Camera.js";
 import FisicObject, { FisicObjectInterface } from "../Basics/FisicObject.js";
@@ -7,7 +8,6 @@ import SimplePoint from "../Basics/SimpleRect.js";
 export interface EntityInterface extends FisicObjectInterface {
     color      ?: string
     gameObject ?: GameObject
-
 }
 
 export enum EntityNames {

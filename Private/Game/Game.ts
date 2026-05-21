@@ -1,6 +1,7 @@
 import EventManager from "./Engine/EventManager.js"
 import MapCreator from "./Map Creator/Map Creator.js"
 import Camera from "./Objects/Basics/Camera.js"
+import Collidable from "./Objects/Basics/Collidable.js"
 import FisicObject from "./Objects/Basics/FisicObject.js"
 import RenderableObject from "./Objects/Basics/Renderable.js"
 import Slime from "./Objects/Entity/Enemy/Slime.js"
@@ -122,6 +123,8 @@ class Game {
     public events = new EventManager()
 
     private spriteSheet = new Image() 
+
+    private tickExecutionStack: Array< () => void > = [] 
 
     constructor(){
         
@@ -272,13 +275,29 @@ class Game {
 
     }
 
+    private executeCollisionTrigger( e: Collidable, other: RenderableObject ){
+
+        const remove = e.collisionTrigger( other as FisicObject )
+
+        if( !remove ) return
+
+        this.tickExecutionStack.push( () => {
+
+            this.map = this.map.filter( i => i !== e )
+
+        })
+
+        return remove
+
+    }
+
     private collision( e: RenderableObject ){
 
         for( const other of this.map ){
 
             if( other === e ) continue
 
-            if( !this.camera.isOutside( other, 2 * this.tileSize )  ) continue
+            if( !this.camera.isOutside( other, 2 * this.tileSize ) ) continue
 
             if( !other.getSolid() || !e.getSolid() ) continue
 
@@ -296,8 +315,6 @@ class Game {
 
                 }
 
-                e.collisionTrigger( other as FisicObject )
-
             } else {
 
                 if( !IsColliding( e, other ) ) continue
@@ -307,6 +324,14 @@ class Game {
             const overlap = GetOverlap( e, other )
             
             if( !overlap ) continue
+
+
+            if( e instanceof Collidable ) {
+
+                if( this.executeCollisionTrigger( e, other ) ) return
+
+            }
+
             
             const horizontal = Math.abs( overlap.x ) < Math.abs( overlap.y )
             
@@ -318,7 +343,25 @@ class Game {
 
     }
 
+    private executeStack()  {
+        
+        if( this.tickExecutionStack.length > 0 ){
+
+            for( const func of this.tickExecutionStack ){
+
+                func()
+
+            }
+
+            this.tickExecutionStack = []
+
+        }
+
+    }
+
     public update( ctx: CanvasRenderingContext2D ){
+
+        this.executeStack()
 
         ctx.imageSmoothingEnabled = false
 

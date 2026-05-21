@@ -9,6 +9,7 @@ export interface FisicObjectInterface extends CollidableInterface {
     speed              ?: number
     friction           ?: number
     collisionException ?: GameObject[]
+    acceleration       ?: [ number, number ]
 }
 
 class FisicObject extends Collidable {
@@ -38,6 +39,10 @@ class FisicObject extends Collidable {
 
         this.setGameObjectID( GameObject.None )
 
+        if( props.acceleration ){
+            this.getAcceleration().setVector( props.acceleration[ 0 ], props.acceleration[ 1 ] )
+        } 
+
     }
 
     public getMass  = () => this.mass
@@ -47,7 +52,7 @@ class FisicObject extends Collidable {
     public getFriction = () => this.friction
     public getCollisionException = () => this.collisionException
     public getKnockback = () => this.knockback
-    public getFixed = () => this.fixed 
+    public getFixed = () => this.fixed
 
     public setMass  = ( mass : number )  => this.mass = mass
     public setSpeed = ( s: number ) => this.speed = s
@@ -68,7 +73,7 @@ class FisicObject extends Collidable {
         this.setX( this.getX() + this.acceleration.getX() + vec.dx )
         this.setY( this.getY() + this.acceleration.getY() + vec.dy )
 
-        this.acceleration.multiply( .9, .9 )
+        this.acceleration.multiply( this.friction, this.friction )
     }
 
     public extractX = () => (this.getX() + this.mask.x ) + this.acceleration.getX() + this.orientation.getX() * this.getSpeed()

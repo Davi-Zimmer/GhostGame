@@ -2,13 +2,18 @@ import Game from "../../Game.js"
 import { GameObject } from "../../Utils/GameObject.js"
 import Animation from "../Animation/Animation.js"
 import Camera from "../Basics/Camera.js"
+import SimplePoint from "../Basics/SimpleRect.js"
 import Entity, { EntityInterface } from "./Entity.js"
+import Item from "./Items/Item.js"
+import Projectile from "./Projectile/Projectile.js"
 
 class Player extends Entity {
 
     private animation = new Animation()
 
     public static SpriteIcon = [ 0, 0, 27, 36 ]
+
+    private inventory: Item | null = null
 
     constructor( props: EntityInterface ){
 
@@ -36,6 +41,8 @@ class Player extends Entity {
         events.onUp( 'a', () => { this.orientation.setX( 0 ); ( stopAnim() ) } )
         events.onUp( 's', () => { this.orientation.setY( 0 ); ( stopAnim() ) } )
         events.onUp( 'd', () => { this.orientation.setX( 0 ); ( stopAnim() ) } )
+
+        events.onMouseDown( 0, this.attack )
 
     }
 
@@ -94,10 +101,40 @@ class Player extends Entity {
         
     }
 
-    private up    = () => this.orientation.setY( -1  ) && this.animation.changeAnimationTo( "up"    )
-    private left  = () => this.orientation.setX( -1  ) && this.animation.changeAnimationTo( "left"  )
-    private down  = () => this.orientation.setY(  1  ) && this.animation.changeAnimationTo( "down"  )
-    private right = () => this.orientation.setX(  1  ) && this.animation.changeAnimationTo( "right" )
+    private attack = ( e: MouseEvent ) => {
+        
+        const dx = e.clientX - this.getMiddleX()
+        const dy = e.clientY - this.getMiddleY()
+
+        const lenght = Math.sqrt( dx * dx + dy * dy )
+
+
+        const dir = new SimplePoint( dx / lenght, dy / lenght )
+
+        const projectile = new Projectile({
+
+            x: this.getMiddleX(),
+            y: this.getMiddleY(),
+            w: 10,
+            h: 10,
+            z: 100,
+            sender: this,
+            acceleration: [ dir.x, dir.y  ]
+            
+        })
+
+        // botar no game
+        
+    }
+
+    private up    = () => { this.orientation.setY( -1  ); this.animation.changeAnimationTo( "up"    ) }
+    private left  = () => { this.orientation.setX( -1  ); this.animation.changeAnimationTo( "left"  ) }
+    private down  = () => { this.orientation.setY(  1  ); this.animation.changeAnimationTo( "down"  ) }
+    private right = () => { this.orientation.setX(  1  ); this.animation.changeAnimationTo( "right" ) }
+
+    public pickItem = ( item: Item ) => this.inventory = item
+    public getInventory = () => this.inventory
+    // public setInventory = () => this.inventory
 
 }
 
